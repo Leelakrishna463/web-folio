@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'node_modules/devicon/devicon.min.css';
 
 :root {
   --max-width: 1100px;
@@ -84,14 +85,11 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
 a {
@@ -106,55 +104,221 @@ a {
 }
 
 .custom-background {
-  background-image: linear-gradient(to left top, #faeee0, #f2e6d8, #eadfd0, #e3d7c8, #dbd0c0);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(8px); 
-  border: 1px solid rgba(26, 31, 20, 0.25);
-  
+  background: linear-gradient(
+    45deg,transparent 14%, #FFFFFF 15%, #FFFFFF 20%, transparent 21%, transparent 79%, #FFFFFF  80%, #FFFFFF 85%, transparent 86%
+  ),linear-gradient(
+    135deg,transparent 14%, #FFFFFF 15%, #FFFFFF 20%, transparent 21%, transparent 79%, #FFFFFF  80%, #FFFFFF 85%, transparent 86%
+  ), radial-gradient(
+    transparent 14%, #FFFFFF 15%, #FFFFFF 25%, transparent 26%
+  );
+  background-size: 1.5em 1.5em;
+  background-color: #000000;
+  opacity: 1;
 }
 
-.custom-background-2 {
-  background-color: #4D4D4D;
+/* Clockwise rotations */
+
+.rotate-15deg{
+  transform: rotate(15deg);
 }
 
-.-rotate-45deg{
-  transform: rotate(-45deg);
+.rotate-30deg{
+  transform: rotate(30deg);
 }
 
 .rotate-45deg{
   transform: rotate(45deg);
 }
 
-.-rotate-90deg{
-  transform: rotate(-90deg);
+.rotate-60deg{
+  transform: rotate(60deg);
+}
+
+.rotate-75deg{
+  transform: rotate(75deg);
 }
 
 .rotate-90deg{
   transform: rotate(90deg);
 }
 
-.-rotate-135deg{
-  transform: rotate(-135deg);
+.rotate-105deg{
+  transform: rotate(105deg);
+}
+
+.rotate-120deg{
+  transform: rotate(120deg);
 }
 
 .rotate-135deg{
   transform: rotate(135deg);
 }
 
-.-rotate-180deg{
-  transform: rotate(180deg);
+.rotate-150deg{
+  transform: rotate(150deg);
+}
+
+.rotate-165deg{
+  transform: rotate(165deg);
 }
 
 .rotate-180deg{
   transform: rotate(180deg);
 }
 
+.rotate-195deg{
+  transform: rotate(195deg);
+}
+
+.rotate-210deg{
+  transform: rotate(210deg);
+}
+
+.rotate-225deg{
+  transform: rotate(225deg);
+}
+
+.rotate-240deg{
+  transform: rotate(240deg);
+}
+
+.rotate-255deg{
+  transform: rotate(255deg);
+}
+
+.rotate-270deg{
+  transform: rotate(270deg);
+}
+
+.rotate-285deg{
+  transform: rotate(285deg);
+}
+
+.rotate-300deg{
+  transform: rotate(300deg);
+}
+
+.rotate-315deg{
+  transform: rotate(315deg);
+}
+
+.rotate-330deg{
+  transform: rotate(330deg);
+}
+
+.rotate-345deg{
+  transform: rotate(345deg);
+}
+
+.rotate-360deg{
+  transform: rotate(360deg);
+}
+
+/* Anti clockwise rotations */
+
+.rotate--15deg{
+  transform: rotate(-15deg);
+}
+
+.rotate--30deg{
+  transform: rotate(-30deg);
+}
+
+.rotate--45deg{
+  transform: rotate(-45deg);
+}
+
+.rotate--60deg{
+  transform: rotate(-60deg);
+}
+
+.rotate--75deg{
+  transform: rotate(-75deg);
+}
+
+.rotate--90deg{
+  transform: rotate(-90deg);
+}
+
+.rotate--105deg{
+  transform: rotate(-105deg);
+}
+
+.rotate--120deg{
+  transform: rotate(-120deg);
+}
+
+.rotate--135deg{
+  transform: rotate(-135deg);
+}
+
+.rotate--150deg{
+  transform: rotate(-150deg);
+}
+
+.rotate--165deg{
+  transform: rotate(-165deg);
+}
+
+.rotate--180deg{
+  transform: rotate(-180deg);
+}
+
+.rotate--195deg{
+  transform: rotate(-195deg);
+}
+
+.rotate--210deg{
+  transform: rotate(-210deg);
+}
+
+.rotate--225deg{
+  transform: rotate(-225deg);
+}
+
+.rotate--240deg{
+  transform: rotate(-240deg);
+}
+
+.rotate--255deg{
+  transform: rotate(-255deg);
+}
+
+.rotate--270deg{
+  transform: rotate(-270deg);
+}
+
+.rotate--285deg{
+  transform: rotate(-30deg);
+}
+
+.rotate--300deg{
+  transform: rotate(-300deg);
+}
+
+.rotate--315deg{
+  transform: rotate(-315deg);
+}
+
+.rotate--330deg{
+  transform: rotate(-330deg);
+}
+
+.rotate--345deg{
+  transform: rotate(-345deg);
+}
+
+.rotate--360deg{
+  transform: rotate(-360deg);
+}
+
+
 .glass-effect {
   background: rgba(26, 31, 20, 0.5);
 }
 
 .clip-90 {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+  clip-path: polygon(0% 50%, 50% 0%, 100% 100%);
 }
 
 .timeline-vertical .timeline-start {
@@ -167,20 +331,82 @@ a {
 
 
 @layer utilities {
+
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
     width: 5px;
+    scrollbar-gutter: stable;
   }
+
   .no-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-red-600 rounded-full;
   }
+
   .no-scrollbar::-webkit-scrollbar-button {
     display: none;
   }
 
- /* Hide scrollbar for IE, Edge and Firefox */
+  /* Hide scrollbar for IE, Edge and Firefox */
   .no-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
+}
+
+
+.mockup-code pre:before {
+  content: "";
+  margin-right: auto;
+}
+
+.location-icon {
+  background-image: url('/images/LocationIcon.svg');
+}
+
+.custom-animate-rotate-ac-135-deg {
+  @apply animate-rotate-ac-135-2s
+}
+
+.custom-animate-rotate-ac-75-deg {
+  @apply animate-rotate-ac-75-2s
+}
+
+.custom-animate-rotate-ac-15-deg {
+  @apply animate-rotate-ac-15-2s
+}
+
+.custom-animate-rotate-ac--45-deg {
+  @apply animate-rotate-ac--45-2s
+}
+
+.custom-animate-rotate-ac-255-deg {
+  @apply animate-rotate-ac-255-2s
+}
+
+/* clockwise rotations */
+
+.custom-animate-rotate-c-135-deg {
+  @apply animate-rotate-c-135-2s
+}
+
+.custom-animate-rotate-c-75-deg {
+  @apply animate-rotate-c-75-2s
+}
+
+.custom-animate-rotate-c-15-deg {
+  @apply animate-rotate-c-15-2s
+}
+
+.custom-animate-rotate-c--45-deg {
+  @apply animate-rotate-c--45-2s
+}
+
+.custom-animate-rotate-c-255-deg {
+  @apply animate-rotate-c-255-2s
+}
+
+.badge-green-500 {
+  @apply bg-green-500;
 }

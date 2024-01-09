@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import DisplayItem from "./DisplayItem";
 import ReactIcon from "devicon/icons/react/react-original.svg";
 import DjangoIcon from "devicon/icons/django/django-plain.svg";
@@ -9,6 +8,20 @@ import PythonIcon from "devicon/icons/python/python-original.svg";
 import { useState } from "react";
 
 let projectData = {
+  python: {
+    display: {
+      image: PythonIcon,
+      altText: "Icon of Python programming language",
+      name: "python",
+    },
+    projects: [
+      {
+        title: "Single Layer Perceptron",
+        description: "A simple ML model that can identify whether a given fruit is Orange or Apple based on the texture",
+        hyperlink: "https://github.com/Leelakrishna463/Perceptron"
+      }
+    ]
+  },
   django: {
     display: {
       image: DjangoIcon,
@@ -18,22 +31,24 @@ let projectData = {
     projects: [
       {
         title: "sw-marshal",
-        description: "sw-marshal description",
+        description: "SpiritWing-Marshal - A personal life organization tool that contains personal passwords and more",
+        hyperlink: "https://github.com/Leelakrishna463/sw_marshal"
       },
-    ],
+    ]
   },
   react: {
     display: {
       image: ReactIcon,
       altText: "Icon of ReactJs Library",
-      name: "react",
+      name: "react"
     },
     projects: [
       {
         title: "web-folio",
-        description: "web-folio description",
-      },
-    ],
+        description: "Portfolio website that exhibit about me and my professional carrier",
+        hyperlink: "https://github.com/Leelakrishna463/web-folio"
+      }
+    ]
   },
   nodejs: {
     display: {
@@ -44,74 +59,30 @@ let projectData = {
     projects: [
       {
         title: "Algo-run API",
-        description: "algo-run api description",
-      },
+        description: "Backend Rest API to explore search and sort algorithms.",
+        hyperlink: "https://github.com/Leelakrishna463/algo-run-api"
+      }
     ],
-  },
-  python: {
-    display: {
-      image: PythonIcon,
-      altText: "Icon of Python programming language",
-      name: "python",
-    },
-    projects: [
-      {
-        title: "Single Layer Perceptron",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "a",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "b",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "c",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "d",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "e",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "f",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "g",
-        description: "single layer perceptron description",
-      },
-      {
-        title: "h",
-        description: "single layer perceptron description",
-      },
-    ],
-  },
+  }
 };
 
 function Project() {
-  const [focusImage, setFocusImage] = useState("");
+  const [focusImage, setFocusImage] = useState("Click on any icon");
   const [displayProjectList, setdisplayProjectList] = useState("hidden");
   const [focusedProjects, setFocusedProjects] = useState([]);
 
   let updateFocusImage = (projectName) => {
-    setFocusImage(projectData[projectName].display.image);
+    setFocusImage(projectData[projectName].display.name);
     setFocusedProjects(projectData[projectName].projects);
     setdisplayProjectList("block");
   };
 
   return (
-    <div className="p-4 flex flex-col h-screen items-center justify-around">
-      <h1 className="text-5xl font-sans m-4">lee:~$ history</h1>
+    <div className="snap-end custom-background ssticky top-0">
+    <div className="bg-base-200 bg-opacity-[0.98] p-4 hero flex flex-col h-screen items-center justify-around">
       <div className="sm:h-full sm:w-full sm:basis-full sm:flex sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-row justify-around items-center drop-shadow-[0px_0px_2px_rgba(0,0,0,0.5)] w-full h-full overflow-hidden">
-          <div className="grid grid-cols-1 grid-rows-1 basis-2/5 aspect-square">
+        <div className="flex flex-row justify-around items-center w-full h-3/4 overflow-hidden">
+          <div className="grid grid-cols-1 grid-rows-1 h-3/4 aspect-square">
             {Object.keys(projectData).map((key, index) => {
               let displayProjectProps = {
                 index: index,
@@ -125,29 +96,24 @@ function Project() {
               );
             })}
 
-            <div className="place-self-center z-10 bg-slate-600 flex justify-center items-center  border-2 row-start-1 col-start-1 h-2/5 aspect-square rounded-full origin-bottom-right">
+            <div className="place-self-center z-10 bg-green-500 flex justify-center items-center row-start-1 col-start-1 h-2/5 aspect-square rounded-full origin-bottom-right">
               {focusImage && (
-                <Image
-                  src={focusImage}
-                  key={Math.random()}
-                  alt=""
-                  className="animate-jump-in-1s w-2/3 h-2/3"
-                />
+                <span className={`animate-jump-in-1s p-auto text-8xl text-black [text-shadow:0px_0px_10px_rgba(0,0,0,0.5)] block devicon-${focusImage}-plain`}/>
               )}
             </div>
           </div>
 
-          <div className={`${displayProjectList} basis-2/5 flex flex-col justify-center items-center aspect-square`}>
-          <div className="p-4 mb-4 w-full sticky glass text-center">asdf</div>
-            <div className="w-full overflow-y-scroll overflow-x-clip  max-h-[75%] no-scrollbar">
+          <div className={`${displayProjectList} basis-2/5 flex flex-col justify-center items-center h-3/4`}>
+          <div className="p-4 mb-4 w-full sticky glass text-black text-3xl font-bold bg-white text-center">Projects</div>
+            <div className="w-full overflow-y-auto max-h-[75%] no-scrollbar">
               {focusedProjects.map((project) => (
-                <div key={project["title"]} className="collapse border-2 mb-1 border-amber-300 bg-base-200">
+                <div key={project["title"]} className="collapse border-2 mb-1 rounded-none bg-base-200">
                   <input type="checkbox" defaultValue={false} />
-                  <div className="collapse-title text-xl font-medium">
+                  <div className="collapse-title text-2xl text-center font-medium">
                     {project["title"]}
                   </div>
                   <div className="collapse-content">
-                    <p>{project["description"]}</p>
+                    <p className="text-lg">{project["description"]}</p>
                   </div>
                 </div>
               ))}
@@ -155,6 +121,7 @@ function Project() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

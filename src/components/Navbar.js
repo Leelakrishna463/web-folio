@@ -20,7 +20,7 @@ function Navbar() {
             <span className="sr-only">Open user menu</span>
             <img
               className="w-8 h-8 rounded-full"
-              src="/images/best_one_1.jpeg"
+              src="/images/best_one_2.jpeg"
               alt="user photo"
             />
           </button>
