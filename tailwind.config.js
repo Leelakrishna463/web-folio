@@ -80,6 +80,10 @@ module.exports = {
           to: {
             transform: 'rotate(225deg)'
           }
+        },
+        'type-in': {
+          from: { width: '0' },
+          to: { width: '100%' }
         }
       },
       animation: {
@@ -95,7 +99,8 @@ module.exports = {
         'rotate-c-75-2s': 'rotate-c-75 2s ease-in-out forwards 1',
         'rotate-c-15-2s': 'rotate-c-15 2s ease-in-out forwards 1',
         'rotate-c--45-2s': 'rotate-c--45 2s ease-in-out forwards 1',
-        'rotate-test-2s': 'rotate-test 2s ease-in-out forwards 1'
+        'rotate-test-2s': 'rotate-test 2s ease-in-out forwards 1',
+        'type-in-2s': 'type-in 2s forwards 1'
       },
       colors: {
         'tema-40': '#264653',

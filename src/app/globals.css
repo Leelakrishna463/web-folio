@@ -103,7 +103,7 @@ a {
   }
 }
 
-.custom-background {
+.bg-custom {
   background: linear-gradient(
     45deg,transparent 14%, #FFFFFF 15%, #FFFFFF 20%, transparent 21%, transparent 79%, #FFFFFF  80%, #FFFFFF 85%, transparent 86%
   ),linear-gradient(
@@ -409,4 +409,10 @@ a {
 
 .badge-green-500 {
   @apply bg-green-500;
+}
+
+.mockup-code > pre::before {
+  margin-right: 0ch;
+  display: none;
+  content: ""
 }
