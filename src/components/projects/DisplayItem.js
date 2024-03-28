@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import { useState, useReducer, useEffect } from 'react';
 
 
 const containerVariants = {
@@ -47,7 +46,7 @@ function DisplayItem({displayProps}){
         variants={iconVariants}
       >
           <motion.span
-            className={`p-auto md:text-8xl text-6xl text-white [text-shadow:0px_0px_10px_rgba(255,255,255,0.5)] block devicon-${displayProps.projectName}-plain`}
+            className={`p-auto text-6xl md:text-7xl text-white [text-shadow:0px_0px_10px_rgba(255,255,255,0.5)] block devicon-${displayProps.projectName}-plain`}
             whileTap={
               () => {displayProps.onProjectClick(displayProps.projectName);}
             }

@@ -6,7 +6,7 @@ const profileInfo = {
   name: "Leelakrishna Thiyagarajan",
   jobBrief: "I Build software for web",
   jobLong:
-    "Passionate Software Engineer with 2 years of experience in developing Backend systems",
+    "Passionate Software Engineer with 3 years of experience in developing Backend systems",
   residence: "Residing at Bengaluru, India",
   imagePath: "images/ProfileImage.jpeg",
 };
@@ -24,7 +24,7 @@ function AboutMe({ updateCommand }) {
   }, [isInView]);
 
   const div_1 = "snap-start snap-always bg-custom";
-  const div_2 = "bg-base-200 bg-opacity-[0.98] hero h-screen text-white";
+  const div_2 = "bg-base-200 bg-opacity-[0.98] hero h-svh sm:h-screen text-white";
   const div_3 =
     "hero-content h-4/5 flex-col mt-auto xl:mt-0 xl:flex-row text-sm justify-evenly";
   const img_1 =
