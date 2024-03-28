@@ -34,14 +34,14 @@ function Contact({ updateCommand }) {
 					<motion.div initial={{ width: '50%' }} whileInView={{ width: 'auto' }} transition={{ delay: 3 }} viewport={{once: true}} className="grid grid-cols-2 justify-items-center align-center">
 						<div key='gmail' className="avatar">
 							<div className="w-24 p-[2px] h-24 hover:drop-shadow-[0_0_5px_rgba(255,255,255,1)]">
-								<a href={contactInfo.contacts['hyperlink']}>
+								<a href={contactInfo.contacts[0]['hyperlink']}>
 									<img src="images/GmailIcon.svg" className="rounded-lg" alt="gmail_icon" />
 								</a>
 							</div>
 						</div>
 						<div key='linkedin' className="avatar">
 							<div className="w-24 hover:drop-shadow-[0_0_5px_rgba(255,255,255,1)]">
-								<a href={contactInfo.contacts['hyperlink']} target="_blank">
+								<a href={contactInfo.contacts[1]['hyperlink']} target="_blank">
 									<span className="p-auto text-8xl text-[#fef9ff] block devicon-linkedin-plain" alt="linkedin_icon" />
 								</a>
 							</div>

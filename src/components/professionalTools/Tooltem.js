@@ -44,11 +44,13 @@ function ToolItem({toolName, i, originIndex, delayPerPixel, originOffset}) {
     delayRef.current = d * delayPerPixel;
   }, [delayPerPixel]);
 
+  // const div_2 = "tooltip tooltip-bottom text-green-500 before:-translate-x-[95%] before:translate-y-[20%] before:active:block before:hidden sm:before:hover:block select-none after:hidden after:active:inline";
+
   return(
     <motion.div ref={ref} variants={itemVariants} key={toolName} custom={delayRef} className="avatar">
-      <div className="sm:w-24 w-20">
-          <motion.span className={`p-auto sm:text-8xl text-7xl text-[#fef9ff] block devicon-${toolName}-plain`} />
-          {/* TODO: tooltip */}
+      <div className="sm:w-24 w-20 text-center">
+          <motion.span className={`p-auto sm:text-8xl md:text-7xl text-[#fef9ff] block devicon-${toolName}-plain`} />
+          <motion.span className="inline-block capitalize text-sm">{toolName}</motion.span>
       </div>
     </motion.div>
   )

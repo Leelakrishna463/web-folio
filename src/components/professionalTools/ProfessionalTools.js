@@ -33,7 +33,7 @@ function ProfessionalTools({ updateCommand }) {
 
   useEffect(() => {
     if(isInView){
-      updateCommand({name: "unzip my_tools.zip", description: "Familiar Framerworks and languages"})
+      updateCommand({name: "unzip skills.zip", description: "Familiar Framerworks and languages"})
       controls.start("visible");
     }
   }, [isInView])
