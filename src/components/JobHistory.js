@@ -1,23 +1,6 @@
 import { useInView, motion } from "framer-motion";
 import { useRef, useEffect } from "react";
-
-
-const jobInfo = [
-  {
-    title: "Software Engineer",
-    location: "Chennai",
-    period: "APR 2021 - DEC 2021",
-    company: "embedUR Systems",
-    locationImagePath: "images/ChennaiMonument.svg"
-  },
-  {
-    title: "Software Engineer",
-    location: "Bengaluru",
-    period: "JAN 2022 - PRESENT",
-    company: "Decathlon Technology UK",
-    locationImagePath: "images/BengaluruMonument.svg"
-  }
-]
+import { jobInfo } from "@/data/appInfo";
 
 function WorkHistory({updateCommand}) {
 

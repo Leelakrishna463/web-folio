@@ -1,15 +1,6 @@
 import { useRef, useEffect } from "react";
 import { useInView, motion } from "framer-motion";
-
-const profileInfo = {
-  greetMessage: "Hello!",
-  name: "Leelakrishna Thiyagarajan",
-  jobBrief: "I Build software for web",
-  jobLong:
-    "Passionate Software Engineer with 3 years of experience in developing Backend systems",
-  residence: "Residing at Bengaluru, India",
-  imagePath: "images/ProfileImage.jpeg",
-};
+import { profileInfo } from "@/data/appInfo";
 
 const command = { name: "whoami", description: "Know about me" };
 

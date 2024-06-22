@@ -1,28 +1,7 @@
 import ToolItem from "./Tooltem";
 import { useInView, motion, useAnimation } from "framer-motion";
 import { useRef, useEffect } from "react";
-
-const tools = [
-  {name: 'apachekafka'},
-  {name : 'bash'},
-  {name: 'css3'},
-  {name: 'django'},
-  {name: 'docker'},
-  {name: 'fastapi'},
-  {name: 'firebase'},
-  {name: 'flask'},
-  {name: 'git'},
-  {name: 'html5'},
-  {name: 'javascript'},
-  {name: 'nextjs'},
-  {name: 'nodejs'},
-  {name: 'postgresql'},
-  {name: 'python'},
-  {name: 'react'},
-  {name: 'redis'},
-  {name: 'tailwindcss'},
-  {name: 'pytest'},
-]
+import { toolsInfo } from "@/data/appInfo";
 
 function ProfessionalTools({ updateCommand }) {
 
@@ -46,7 +25,7 @@ function ProfessionalTools({ updateCommand }) {
           initial="hidden" animate={controls}
           >
             {
-              tools.map((tool, i) => {
+              toolsInfo.map((tool, i) => {
                 return (<ToolItem key={i}
                   i={i}
                   originIndex={0}

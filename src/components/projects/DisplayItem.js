@@ -56,8 +56,6 @@ function DisplayItem({displayProps}){
   );
 }
 
-//text-[#40513B]
-
 DisplayItem.propTypes = { 
   displayProps: PropTypes.shape({
     index: PropTypes.number.isRequired,

@@ -1,20 +1,7 @@
 import { useInView, motion } from "framer-motion";
 import { useRef, useEffect } from "react";
+import { contactInfo } from "@/data/appInfo";
 
-const contactInfo = {
-	contacts: [
-		{
-			'name': 'Gmail',
-			'hyperlink': "mailto:leelakrishnathiyagarajan@gmail.com",
-			'imageAlt': 'Gmail Icon'
-		},
-		{
-			'name': 'LinkedIn',
-			'hyperlink': "https://www.linkedin.com/in/leelakrishna-thiyagarajan",
-			'imageAlt': 'LinkedIn'
-		}
-	]
-}
 
 function Contact({ updateCommand }) {
 
