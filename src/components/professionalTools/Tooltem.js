@@ -20,9 +20,6 @@ function ToolItem({toolName, i, originIndex, delayPerPixel, originOffset}) {
   const offset = useRef({ top: 0, left: 0 });
   const ref = useRef();
 
-  // The measurement for all elements happens in the layoutEffect cycle
-  // This ensures that when we calculate distance in the effect cycle
-  // all elements have already been measured
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) return;
@@ -44,7 +41,6 @@ function ToolItem({toolName, i, originIndex, delayPerPixel, originOffset}) {
     delayRef.current = d * delayPerPixel;
   }, [delayPerPixel]);
 
-  // const div_2 = "tooltip tooltip-bottom text-green-500 before:-translate-x-[95%] before:translate-y-[20%] before:active:block before:hidden sm:before:hover:block select-none after:hidden after:active:inline";
 
   return(
     <motion.div ref={ref} variants={itemVariants} key={toolName} custom={delayRef} className="avatar">

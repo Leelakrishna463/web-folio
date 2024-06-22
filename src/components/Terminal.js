@@ -2,7 +2,6 @@ import { useMotionValue, animate, useTransform, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const domainName = "spiritwing.io:~";
-const terminalUser = `user@${domainName} ~ %`;
 
 const cursorVariants = {
 	blinking: {

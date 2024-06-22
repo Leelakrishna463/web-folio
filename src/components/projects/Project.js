@@ -3,76 +3,8 @@
 import { useInView, motion, AnimatePresence } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import DisplayItem from "./DisplayItem";
-import ReactIcon from "devicon/icons/react/react-original.svg";
-import DjangoIcon from "devicon/icons/django/django-plain.svg";
-import NodejsIcon from "devicon/icons/nodejs/nodejs-original.svg";
-import PythonIcon from "devicon/icons/python/python-original.svg";
 
-let projectInfo = {
-  displayTitle: "Projects",
-  projects: {
-    python: {
-      display: {
-        image: PythonIcon,
-        altText: "Icon of Python programming language",
-        name: "python",
-      },
-      projects: [
-        {
-          title: "Single Layer Perceptron",
-          description:
-            "A simple ML model that can identify whether a given fruit is Orange or Apple based on the texture. ",
-          hyperlink: "https://github.com/Leelakrishna463/Perceptron",
-        },
-      ],
-    },
-    django: {
-      display: {
-        image: DjangoIcon,
-        altText: "Icon of Django framework",
-        name: "django",
-      },
-      projects: [
-        {
-          title: "sw-marshal",
-          description:
-            "SpiritWing-Marshal - A personal life organization tool that contains personal passwords and more. ",
-          hyperlink: "https://github.com/Leelakrishna463/sw_marshal",
-        },
-      ],
-    },
-    react: {
-      display: {
-        image: ReactIcon,
-        altText: "Icon of ReactJs Library",
-        name: "react",
-      },
-      projects: [
-        {
-          title: "web-folio",
-          description:
-            "Portfolio website that exhibit about me and my professional career. ",
-          hyperlink: "https://github.com/Leelakrishna463/web-folio",
-        },
-      ],
-    },
-    nodejs: {
-      display: {
-        image: NodejsIcon,
-        altText: "Icon of NodeJs Environment",
-        name: "nodejs",
-      },
-      projects: [
-        {
-          title: "Algo-run API",
-          description:
-            "Backend Rest API to explore search and sort algorithms. ",
-          hyperlink: "https://github.com/Leelakrishna463/algo-run-api",
-        },
-      ],
-    },
-  },
-};
+import {projectInfo} from "@/data/appInfo";
 
 function Project({ updateCommand }) {
   const ref = useRef(null);
@@ -171,13 +103,12 @@ function Project({ updateCommand }) {
                         <div className="truncate collapse-title sm:text-2xl text-xl text-center ">
                           {project["title"]}
                         </div>
-                        <div className="collapse-content">
-                          <p className="sm:text-lg text-md">
+                        <div className="collapse-content flex flex-row items-center justify-between">
+                          <p className="sm:text-lg text-md align-text-bottom">
                             {project["description"]}
-                            <a className="devicon-github-original" href={project["hyperlink"]}>
-                              
-                            </a>
                           </p>
+                          <a className="devicon-github-original text-5xl align-middle hover:[text-shadow:0px_0px_10px_rgba(255,255,255,0.5)]" href={project["hyperlink"]}>
+                          </a>
                         </div>
                       </div>
                     ))}
