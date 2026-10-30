@@ -39,3 +39,14 @@ next-env.d.ts
 /.vscode/*
 # brainstorm + plan workspaces
 .superpowers/
+
+# astro
+/dist/
+/.astro/
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+# lighthouse
+/.lighthouseci/

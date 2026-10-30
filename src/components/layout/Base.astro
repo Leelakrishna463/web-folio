@@ -1,0 +1,36 @@
+---
+// Every page: head, font preload, header, page transitions, the stage
+import { ClientRouter } from 'astro:transitions';
+import Header, { type Section } from './Header.astro';
+import '../../styles/tokens.css';
+import '../../styles/base.css';
+
+interface Props {
+  title: string;
+  description: string;
+  current: Section;
+  resumeUrl: string;
+  /** where the page's ambient amber glow sits, e.g. '64% 52%' */
+  glowAt?: string;
+}
+const { title, description, current, resumeUrl, glowAt } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="en" style={glowAt ? `--glow-at: ${glowAt}` : undefined}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <meta name="theme-color" content="#060708">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <ClientRouter />
+</head>
+<body>
+  <Header current={current} resumeUrl={resumeUrl} />
+  <slot />
+</body>
+</html>

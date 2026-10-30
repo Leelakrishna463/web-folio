@@ -1,0 +1,28 @@
+/* lee.sh design tokens: a near-black ground, every line and letter in one amber, green only for on/ok LEDs.
+   Ported from design/ds/dark.css. */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(/fonts/archivo-latin.woff2) format("woff2");
+}
+:root {
+  --neon: #ffb547;
+  --ground: #060708;
+  --paper: #0a0d10;
+  --shade: #0d1114;
+  --ink: var(--neon);
+  --ink-2: color-mix(in oklab, var(--neon) 66%, #060708);   /* 4.8:1 on the ground, 4.6:1 in a box */
+  --rule: color-mix(in oklab, var(--neon) 22%, #060708);
+  --red: color-mix(in oklab, var(--neon) 40%, #fff);        /* hot amber: probed leads, cords, the band */
+  --hot: color-mix(in oklab, var(--neon) 35%, #fff);        /* lettering on a lit part */
+  --carrier: color-mix(in oklab, var(--neon) 78%, var(--ground));   /* a lit net, under its packets */
+  --ok: #4fe08a;                                            /* on/ok LEDs only */
+  --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --gut: clamp(16px, 4.4vw, 64px);
+  --glow: drop-shadow(0 0 2px var(--neon)) drop-shadow(0 0 12px color-mix(in oklab, var(--neon) 55%, transparent));
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  color-scheme: dark;
+}

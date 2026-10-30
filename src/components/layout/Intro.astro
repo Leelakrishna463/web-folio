@@ -1,0 +1,11 @@
+---
+// The page's readable column: heading, role line, lede, then whatever the page adds (lists, buttons, hint)
+interface Props { heading: string; role?: string; lede?: string }
+const { heading, role, lede } = Astro.props;
+---
+<section class="intro" aria-labelledby="page-heading">
+  <h1 id="page-heading">{heading}</h1>
+  {role && <p class="role">{role}</p>}
+  {lede && <p class="lede">{lede}</p>}
+  <slot />
+</section>

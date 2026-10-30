@@ -1,0 +1,24 @@
+---
+// The running header: part number, the six sections, and the résumé
+export type Section = 'overview' | 'about' | 'skills' | 'experience' | 'projects' | 'contact';
+interface Props { current: Section; resumeUrl: string }
+const { current, resumeUrl } = Astro.props;
+const LINKS: [Section, string, string][] = [
+  ['overview', '/', 'Overview'],
+  ['about', '/about', 'About'],
+  ['skills', '/skills', 'Skills'],
+  ['experience', '/experience', 'Experience'],
+  ['projects', '/projects', 'Projects'],
+  ['contact', '/contact', 'Contact'],
+];
+---
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="/">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    {LINKS.map(([key, href, name], i) => (
+      <li><a href={href} aria-current={key === current ? 'page' : undefined}><b>{i + 1}</b>{name}</a></li>
+    ))}
+  </ul></nav>
+  <a class="btn solid" href={resumeUrl} target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>

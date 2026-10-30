@@ -1,0 +1,8 @@
+---
+// The page body: intro column beside the figure (stacked on small screens)
+interface Props { introWidth?: string }
+const { introWidth } = Astro.props;
+---
+<main class="stage" style={introWidth ? `--intro-w: ${introWidth}` : undefined}>
+  <slot />
+</main>
