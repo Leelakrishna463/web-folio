@@ -66,7 +66,6 @@ const buses = lanes.flatMap((b, k) => {
 // ---- the narrow board: U1 on top, the parts stacked below, one bus down the left edge ----
 const pin = (k: number) => 92 - 60 + 16 + k * (88 / 7);
 const NR = { x: 46, y: 566, w: 300, sh: 28, gap: 6 };
-const tourLabel = (k: string) => details.find((d) => d.key === k)!.title;
 ---
 <Base title={`${profile.name} · ${profile.role} (${profile.partNumber})`} glowAt="64% 52%" current="overview" resumeUrl={profile.resumeUrl}
       description={`${profile.name}, a ${profile.role.toLowerCase()} in ${profile.city} (${profile.coreStack.slice(0, 3).join(', ')}), drawn as a motherboard: every part is a section, and every part connects only to the CPU.`}>

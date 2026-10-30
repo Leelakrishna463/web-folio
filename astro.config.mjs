@@ -1,7 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-/** Test pages (tests/fixtures) exist only in Playwright's build, never in production. */
+/** Test pages (tests/fixtures) exist only in Playwright's build, never in production.
+ * @returns {import('astro').AstroIntegration} */
 const fixtures = () => ({
   name: 'lee-fixtures',
   hooks: {

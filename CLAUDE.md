@@ -10,88 +10,64 @@ hardware/networking details).
 - Keep it restrained. Lee rejects anything overloaded, artificial, or generic.
 - Never invent personal details. Use `[bracketed]` placeholders until Lee supplies them.
 
+## Stack and commands
+
+Astro 5 static site, vanilla TypeScript islands (no UI framework), plain CSS tokens. Hosted on Vercel.
+
+```sh
+npm run dev        # local dev server
+npm run build      # static build to dist/
+npm test           # Vitest: data loader, geometry, components
+npm run e2e        # Playwright (builds with test fixtures, then previews): desktop + phone
+npx astro check    # types
+```
+
+CI (`.github/workflows/ci.yml`) runs check → unit → e2e → build → Lighthouse (`lighthouserc.json`).
+
 ## Repo layout
 
 | Path | What it is |
 |---|---|
-| repo root (`src/`, `package.json`, `next.config.js`) | **Legacy** Next.js 14 + daisyUI portfolio (the old site). Not the new design; don't extend it. |
-| `design/lee-*.html` | The five approved component pages. Standalone; open in a browser. **Source of truth for geometry.** |
-| `design/generator/` | Python that generates RAM/SSD/GPU/NIC pages. `kit.py` = shared engine (trace fans from ports, Liang–Barsky keep-out clipping, wire routing, note placement, narrow-screen bus, hover linking). Each script writes `../lee-<part>.html`. |
-| `scaffold/` | Vite + React 19 + TS + Tailwind v4 + shadcn/ui from the rejected terminal design. **Never built**: run `npm install && npm run build` and fix versions before relying on it. Reuse the setup, replace the content. |
-| `reference/` | `old-birds-eye-board.html` (outdated visual language, reference only), `nic-reference.png`. |
-
-Regenerate a page (Windows: `python`, not `python3`):
-
-```sh
-cd design/generator && python ram.py   # or ssd.py / gpu.py / nic.py
-```
-
-`lee-cpu.html` is hand-written, not generated. Edit the generator, not the generated HTML, for RAM/SSD/GPU/NIC.
+| `src/data/api/v1/*.json` | All site content, API-shaped (profile, about, skills, experience, projects). Also served at `/api/v1/<name>.json`. |
+| `src/lib/api.ts`, `schema.ts` | `getResource(name)`: reads the JSON at build time, or `${LEE_API_BASE}/v1/<name>` when set; zod-validated, fails the build loudly. |
+| `src/lib/geom/` | DOM-free geometry: paths/chamfer/rotate, 8-lane buses + LEE bit patterns, edge connectors, popup placement router. |
+| `src/components/svg/` | Reusable drawing pieces: Figure (wide + narrow builds), Chip, Probe, Pins, Net, Trace, EdgeConnector, Socket, Led, Tag, Ghost, Lines, Screw, CpuPin. |
+| `src/components/parts/` | Page parts: Cpu, Dimm, RoleChip, VramChip, NicCard, and `board/` (Overview's small parts). |
+| `src/components/layout/` | Base, Header, Intro, Stage, Details (per-part `<template>`s + screen-reader list), DetailPanel. |
+| `src/scripts/` | Client runtime, ~9 KB gz: probe, card (popup; routing lazy-loaded), panel (phone), blips, tour, copy; booted by `figure.ts`. |
+| `src/pages/` | `/`, `/about`, `/skills`, `/experience`, `/projects`, `/contact`. |
+| `tests/` | `unit/` (Vitest), `e2e/` (Playwright), `fixtures/` (test-only `/fixture` page, injected when `LEE_FIXTURES=1`). |
+| `design/` | The approved static design pages (`lee-*.html` + `ds/`). **Visual reference only**; the site is built in `src/`. |
+| `docs/superpowers/` | Specs and implementation plans. |
 
 ## Concept: the site is a motherboard
 
-Each component is one section. Star topology: every component connects **only to the CPU**. Buses carry flowing
-1s and 0s (the bits spell "LEE" in ASCII).
+Each section is one component; star topology: every component connects **only to the CPU**. CPU = About,
+RAM = Skills, SSD = Experience, GPU = Projects, NIC = Contact, the whole board = Overview (landing).
 
-| Component | Section | Status |
-|---|---|---|
-| CPU (centre hub) | About | designed: `design/lee-cpu.html` |
-| RAM | Skills | designed: `design/lee-ram.html` |
-| SSD | Experience | designed: `design/lee-ssd.html` |
-| GPU | Projects | designed: `design/lee-gpu.html` |
-| NIC | Contact | designed: `design/lee-nic.html` |
-| Bird's-eye board | Landing | **not designed**: zoomed-out view of the five components |
+## Visual language (agreed)
 
-Flow: bird's-eye board → scroll zooms into CPU → scroll visits RAM, SSD, GPU, NIC → closing shot of the whole
-board lit.
-
-## Visual language (agreed; don't change)
-
-- **Colours:** bg `#0b0d10` (graphite, not black), vignette `#13171c`; single accent amber `#ffb547`, hot
-  `#ffd796`; green `#4fe08a` only for on/ok LEDs; text `#eef1f4`, muted `#7d8792`, component lines `#c3ccd5`.
-- **Type:** JetBrains Mono (labels, chip etching, silkscreen); IBM Plex Sans (readable copy).
-- **Components:** 2D representational line drawings, recognisable as the real part (pins, gold contacts, key
-  notches, fans, LEDs, screw notch). Not photoreal, not 3D.
-- **Geometry:** sharp edges, radii 1–3 units max, no pills. Traces straight with 45° bends only, never curves.
-- **Depth:** the rest of the board sits blurred behind the focused component.
-- **Facts:** float beside gold pads, wired to the component by a brighter trace (out, one 45° bend, straight in).
-  Wired traces follow the ambient fan geometry so they never cross.
-- **Keep-out:** nothing runs under text; ambient traces end at a via before any text block.
-- **Info on chips** where it fits (RAM chips = skills, SSD chips = roles).
-- **Motion:** calm. Gently floating notes, slow trace pulses, blinking LEDs. Hover lights part + wire + note.
-  Respect `prefers-reduced-motion`.
-- **No clutter:** only components that matter; no decorative extra parts.
-- **Narrow screens:** component on top, notes listed below, fed by one bus down the left edge.
-
-## Per-page specs (exact geometry is in the HTML)
-
-- **CPU / About:** centred chip, 16 pins per side, lid etched "LEE / Senior Backend Engineer / Python · Django ·
-  PostgreSQL". Notes: intro (top-left), Core stack + Experience (left), Location + Status (right), Résumé +
-  Contact buttons (bottom-right).
-- **RAM / Skills:** four horizontal DIMMs, slot + gold contacts on the **left**, traces fan left. 3 chips per stick
-  = 3 skills, each with 3 load LEDs (daily / comfortable / working). Group label at right end. One empty dashed
-  "FREE · next skill" socket. Notes: intro (top), Strongest, Load legend, Next in the pipeline (right).
-- **SSD / Experience:** M.2 drive as timeline. Oldest role by the screw, current role on the controller by the
-  connector ("data flows toward the present and on to the CPU"). Year ruler silkscreened along the bottom. One
-  impact note per role, wired from its chip.
-- **GPU / Projects:** card's circuit side. GPU die renders each project into its own memory chip; hover lights the
-  render path (marching dashes). Notes: problem → what I did → result.
-- **NIC / Contact:** flat 2D network card (`reference/nic-reference.png`): I/O bracket with 4 RJ45 jacks
-  (link/activity LEDs), PHY chips, glowing controller ASIC, memory buffers, PCIe gold fingers. **One channel only:
-  email.** Controller = email ("One address, always listening"); ports = "Link up · open to senior backend roles";
-  buffers = "Nothing dropped · replies within [24h]"; PCIe = "Ready to slot in" + résumé.
+- **Colour:** near-black ground `#060708`; one amber `#ffb547` for every line and letter (tokens in
+  `src/styles/tokens.css`); hot amber for probed leads; green `#4fe08a` only for link/ok LEDs.
+- **Type:** Archivo (self-hosted variable woff2), condensed widths for lettering on parts.
+- **Parts:** 2D line drawings recognisable as the real hardware; keyed edge connectors (round-ended key slot,
+  rounded shoulders) seated in thick sockets that cover the finger tips.
+- **Traces:** straight runs with 45° bends only. Overview buses are one 8-lane shape rotated a quarter turn per side.
+- **Hover/probe:** the part keeps its colours and glows; its nets light; lit buses carry "LEE" in ASCII, one bit per lane.
+- **Popups:** open in clear space, reached by a square-cornered cord; never cover a part or lettering; stay on screen.
+- **Rest of the board:** blurred ghosts behind the focused part, each a link to its section.
+- **Motion:** calm; blips at a constant pace; tour on section pages only (desktop); all off under reduced motion.
+- **Phone:** no ghosts, no tour, no popups, no blips; minimal static lines; tapping a part fills a docked bottom panel.
 
 ## Rejected (never bring back)
 
-Terminal-only page; realistic 3D / Three.js parts; curved buses; rounded components; adjacent-pin comb wiring;
-separate floating info card/box; "plug the cable in" NIC; rear-I/O panel with one port per contact channel;
-TCP-handshake contact page.
+Terminal-only page; realistic 3D / Three.js parts; curved buses; adjacent-pin comb wiring; separate floating info
+card beside the drawing; "plug the cable in" NIC; rear-I/O panel with one port per contact channel; TCP-handshake
+contact page; the light "datasheet" theme.
 
 ## Next steps
 
-1. Design the bird's-eye landing view and the scroll transitions between pages.
-2. Build the real site (in `scaffold/` or a fresh Vite + React + shadcn app): one React component per board part,
-   SVG ported from the HTML, `kit.py` trace/keep-out/wire logic ported to a shared hook.
-3. Replace every `[bracketed]` placeholder with Lee's real details (companies, roles, years, projects, impact,
-   email, links, résumé URL, reply time). RAM load levels are guesses; confirm them.
-4. Deploy (Vercel / Netlify / GitHub Pages) on a short domain (lee.sh or lee.dev).
+1. Replace every `[bracketed]` placeholder in `src/data/api/v1/*.json` with Lee's real details (companies, roles,
+   years, projects, impact, email, résumé URL, reply time, next skill). RAM load levels are guesses; confirm them.
+2. Deploy to Vercel and connect the domain (lee.sh or lee.dev).
+3. When a real API exists, set `LEE_API_BASE` in Vercel; the JSON schema is the contract.

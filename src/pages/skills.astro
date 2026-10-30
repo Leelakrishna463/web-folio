@@ -15,9 +15,9 @@ import type { Detail } from '../lib/detail';
 const [profile, skills] = await Promise.all([getResource('profile'), getResource('skills')]);
 const loadNames = skills.loadLegend as Record<1 | 2 | 3, string>;
 const details: Detail[] = skills.modules.flatMap((m, gi) => m.chips.map((c, ci) => c
-  ? { key: `c${gi}${ci}`, title: c.name.toUpperCase(), tag: m.group.toUpperCase(),
+  ? { key: `c${gi}${ci}`, title: c.name, tag: m.group,
       rows: [{ small: 'LOAD' }, { load: c.load, text: `${loadNames[c.load]}.` }, ...(c.note ? [{ text: c.note }] : [])] }
-  : { key: `c${gi}${ci}`, title: 'FREE SOCKET', tag: m.group.toUpperCase(), rows: [{ text: 'Next in the pipeline:' }, { text: skills.next }] }));
+  : { key: `c${gi}${ci}`, title: 'Free socket', tag: m.group, rows: [{ text: 'Next in the pipeline:' }, { text: skills.next }] }));
 
 // wide: the sticks stacked, each slot's six bus lanes running straight right into the CPU's pins
 const WIDE = { x: 20, w: 700, h: 118, at: (i: number) => 80 + i * 164 };
@@ -67,6 +67,8 @@ const NARROW = { x: 10, w: 300, h: 104, at: (i: number) => 40 + i * 158 };
 </Base>
 
 <style>
+  /* skill names read in their own case to screen readers; the card header letters them in caps */
+  :global(.dt-hd) { text-transform: uppercase; }
   .legend { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 8px; font: 500 15px/1.4 var(--font); color: var(--ink-2); }
   .legend li { display: flex; align-items: center; gap: 12px; }
   .next { margin: 22px 0 0; font: 500 15px/1.45 var(--font); color: var(--ink-2); }

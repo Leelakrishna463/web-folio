@@ -44,7 +44,7 @@ test.describe('phone', () => {
   test('tapping the free socket fills the panel with what is next', async ({ page }) => {
     await page.goto('/skills');
     await page.locator('svg.narrow .pr.l0').tap();
-    await expect(page.locator('[data-panel]')).toContainText('FREE SOCKET');
+    await expect(page.locator('[data-panel]')).toContainText(/free socket/i);
     await expect(page.locator('[data-panel]')).toContainText(skills.next);
   });
 });
