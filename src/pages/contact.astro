@@ -1,10 +1,83 @@
 ---
+// Contact: one channel, email. The network card says it four ways: ports (open to roles), controller (the address),
+// buffers (every message gets a reply), PCIe (the résumé). Port of design/lee-nic.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Ghost from '../components/svg/Ghost.astro';
+import Trace from '../components/svg/Trace.astro';
+import NicCard from '../components/parts/NicCard.astro';
+import { getResource } from '../lib/api';
+import type { Pt } from '../lib/geom/path';
+import type { Detail } from '../lib/detail';
+
+const profile = await getResource('profile');
+const EMAIL = profile.email;
+const details: Detail[] = [
+  { key: 'ports', title: 'PORTS', tag: 'LINK UP', rows: [{ text: `${profile.status.text}.` }, { text: `${profile.location} · ${profile.workMode}.` }] },
+  { key: 'ctrl', title: 'EMAIL', tag: 'CONTROLLER', rows: [{ text: EMAIL }, { text: 'One address, always listening.' }, { act: 'Click to copy' }] },
+  { key: 'buf', title: 'BUFFERS', tag: 'NOTHING DROPPED', rows: [{ text: `Every message gets a reply, usually within ${profile.replyTime}.` }] },
+  { key: 'pcie', title: 'PCIe', tag: 'READY TO SLOT IN', rows: [{ text: 'Résumé as a PDF.' }, { act: 'Click to download' }] },
+];
+// the fingers' lanes drop out of the slot and run on into the CPU, the rightmost turning first so none cross
+const Y1 = 500;
+const lanes = [0, 1, 2, 3, 4, 5, 6, 7].map((q) => {
+  let lx = 580 - q * 18; const turn = Y1 + 44 + q * 12;
+  if (lx > 446 && lx < 464) lx -= 12;   // clear of the key notch
+  return { pts: [[lx, Y1 + 32], [lx, turn], [lx + 10, turn + 10], [840, turn + 10]] as Pt[], y: turn + 10, seed: (q * 7) % 10, inward: q % 2 === 1 };
+});
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="contact" resumeUrl="#">
+<Base title={`Contact ${profile.name} · ${profile.partNumber} ordering information`} glowAt="58% 46%" current="contact" resumeUrl={profile.resumeUrl}
+      description={`Contact ${profile.name} by email. ${profile.status.text}.`}>
   <Stage>
-    <Intro heading="Let's talk" />
+    <Intro heading="Let's talk" lede="One channel, one address, always listening.">
+      <div class="mail">
+        <a id="addr" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+        <button class="btn small" type="button" data-copy-btn={EMAIL}>Copy</button>
+      </div>
+      <ul class="quick">
+        <li>{profile.status.text}</li>
+        <li>{profile.location} · {profile.workMode}</li>
+        <li>Replies usually within {profile.replyTime}</li>
+      </ul>
+      <div class="actions">
+        <a class="btn solid" href={`mailto:${EMAIL}`}>Email Lee</a>
+        <a class="btn" href={profile.resumeUrl} target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+      </div>
+      <p class="hint">Hover, tab or tap a part of the card to read it.</p>
+    </Intro>
+    <Figure label={`A network card wired to ${profile.name}'s CPU: four Ethernet ports, PHY chips, a controller lettered with the email, memory buffers and a PCIe connector.`}
+            wide={[1000, 740]} narrow={[360, 750]} tour={details.map((d) => d.key)}>
+      <Fragment slot="wide">
+        <Ghost kind="ram" x={140} y={30} w={400} h={66} />
+        <Ghost kind="gpu" x={40} y={600} w={250} h={200} />
+        <Ghost kind="ssd" x={330} y={670} w={270} h={62} />
+        <Ghost kind="cpu" x={850} y={60} w={640} h={640} />
+        {lanes.map((l) => <>
+          <Trace points={l.pts} blip={{ seed: l.seed, inward: l.inward }} />
+          <path d={`M840 ${l.y}h12`} class="pin stub" />
+        </>)}
+        <NicCard mode="wide" profile={profile} />
+      </Fragment>
+      <Fragment slot="narrow">
+        <NicCard mode="narrow" profile={profile} />
+      </Fragment>
+      <Details items={details} label="Network card" />
+    </Figure>
   </Stage>
 </Base>
+
+<script>
+  import { initCopy } from '../scripts/copy';
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLButtonElement>('[data-copy-btn]').forEach((b) => initCopy(b, b.dataset.copyBtn!, document.getElementById('addr') ?? undefined));
+  });
+</script>
+
+<style>
+  .mail { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 24px 0 0; }
+  .mail a { font: 800 clamp(22px, 2.2vw, 28px)/1.2 var(--font); letter-spacing: -.01em; text-decoration: none; overflow-wrap: anywhere; color: var(--hot); }
+  .mail a:hover { color: var(--red); }
+</style>

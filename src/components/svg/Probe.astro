@@ -6,15 +6,17 @@ interface Props {
   key: string;
   label: string;
   href?: string;
+  /** text this part copies to the clipboard when activated (the NIC's controller) */
+  copy?: string;
   lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number };
   class?: string;
 }
-const { key, label, href, lead, class: cls = '' } = Astro.props;
+const { key, label, href, copy, lead, class: cls = '' } = Astro.props;
 const L = lead.len ?? 22;
 const step: Pt = lead.dir === 'u' ? [0, -L] : lead.dir === 'd' ? [0, L] : lead.dir === 'l' ? [-L, 0] : [L, 0];
 const tip: Pt = [lead.from[0] + step[0], lead.from[1] + step[1]];
 ---
-<g class={`pr ${cls}`.trim()} data-key={key} data-href={href} data-tip={`${tip[0]},${tip[1]}`} tabindex="0"
+<g class={`pr ${cls}`.trim()} data-key={key} data-href={href} data-copy={copy} data-tip={`${tip[0]},${tip[1]}`} tabindex="0"
    role={href ? 'link' : 'button'} aria-label={label}>
   <slot />
   <path d={`M${lead.from[0]} ${lead.from[1]}l${step[0]} ${step[1]}`} class="ext" stroke-dasharray={L} stroke-dashoffset={L} />

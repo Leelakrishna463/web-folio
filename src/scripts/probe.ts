@@ -22,10 +22,11 @@ export function initProbe(svg: SVGSVGElement): Probe {
   }
 
   function act(p: SVGGElement, fromPointer: boolean) {
-    const key = p.dataset.key!, href = p.dataset.href;
-    // on touch, the first tap shows what a linked part says; the second tap follows it
-    if (href && fromPointer && coarse() && pinned !== key) { pinned = key; show(key); return; }
+    const key = p.dataset.key!, href = p.dataset.href, copy = p.dataset.copy;
+    // on touch, the first tap shows what a linked (or copying) part says; the second tap acts
+    if ((href || copy) && fromPointer && coarse() && pinned !== key) { pinned = key; show(key); return; }
     if (href) { location.href = href; return; }
+    if (copy) { navigator.clipboard?.writeText(copy).catch(() => { location.href = `mailto:${copy}`; }); pinned = key; show(key); return; }
     pinned = pinned === key ? null : key;
     show(pinned ?? key);
   }
