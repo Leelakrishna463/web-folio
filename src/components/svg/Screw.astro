@@ -1,0 +1,8 @@
+---
+// A screw holding a card down in its notch: a standoff under the board, a pan head with a cross slot
+interface Props { x: number; y: number }
+const { x, y } = Astro.props;
+---
+<circle cx={x} cy={y} r="16" class="standoff" />
+<circle cx={x} cy={y} r="10" class="screw" />
+<path d={`M${x - 5} ${y}h10M${x} ${y - 5}v10`} class="ln" />

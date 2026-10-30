@@ -99,3 +99,8 @@ svg .brd:hover, svg .brd:focus-visible { opacity: .9; filter: none; outline: non
 /* ---- a fact pin's socket: ---() ---- */
 svg .sock { fill: var(--ground); stroke: var(--ink); stroke-width: 1.6; transition: fill .15s ease-out; }
 svg .pr.on .sock { fill: var(--red); stroke: var(--red); }
+
+/* ---- a screw in its notch ---- */
+svg .screw { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+svg .standoff { fill: var(--shade); stroke: var(--ink-2); stroke-width: 1.4; }
+svg .hex { fill: none; }   /* a timing diagram's data-valid segment; lights with its role */

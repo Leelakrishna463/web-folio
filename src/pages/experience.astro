@@ -1,10 +1,103 @@
 ---
+// Experience: an M.2 drive, roles stored oldest to newest from the screw to the connector, the current role on the
+// controller; a timing row and year ruler underneath. Port of design/lee-ssd.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Ghost from '../components/svg/Ghost.astro';
+import Net from '../components/svg/Net.astro';
+import Trace from '../components/svg/Trace.astro';
+import EdgeConnector from '../components/svg/EdgeConnector.astro';
+import Socket from '../components/svg/Socket.astro';
+import Screw from '../components/svg/Screw.astro';
+import RoleChip from '../components/parts/RoleChip.astro';
+import { getResource } from '../lib/api';
+import { countWord } from '../lib/text';
+import type { Detail } from '../lib/detail';
+
+const [profile, experience] = await Promise.all([getResource('profile'), getResource('experience')]);
+const roles = experience.roles;
+const years = (r: (typeof roles)[number]) => `${r.from} – ${r.to ?? 'NOW'}`;
+// the current role glows brightest, the one before it softer, older ones stay dim
+const litOf = (i: number) => (i === roles.length - 1 ? 3 : i === roles.length - 2 ? 2 : 1) as 1 | 2 | 3;
+const details: Detail[] = roles.map((r) => ({
+  key: r.id, title: r.company, tag: r.to ? years(r) : 'CURRENT',
+  rows: [{ small: `${r.kind} · ${years(r)}` }, { text: `${r.title}.` }, { small: 'RESULT' }, { text: r.impact }],
+}));
+
+// ---- wide: the drive lies flat, screw on the left, connector facing the CPU on the right ----
+const X0 = 20, X1 = 760, Y0 = 180, Y1 = 460, RR = 14, MY = (Y0 + Y1) / 2;
+const drive = `M${X0} ${Y0}H${X1}V${Y1}H${X0}V${MY + RR}A${RR} ${RR} 0 0 0 ${X0} ${MY - RR}Z`;
+const CS: [number, number][] = [[56, 210], [290, 210], [524, 200]];
+const LANES = [210, 232, 254, 298, 320, 342, 364, 386, 408, 430];   // none at the M-key notch
+const HY = 510, TY = 566, TX = [CS[0][0], CS[1][0], CS[2][0], CS[2][0] + CS[2][1]];
+const hex = (x0: number, x1: number, y: number, h: number) => { const m = h / 2, s = 8; return `M${x0} ${y}L${x0 + s} ${y - m}H${x1 - s}L${x1} ${y}L${x1 - s} ${y + m}H${x0 + s}Z`; };
+// ---- narrow: the drive stands upright, newest at the top by the connector, screw at the bottom ----
+const NX0 = 30, NX1 = 330, NY0 = 60, NY1 = 730, NR = 12, NMX = (NX0 + NX1) / 2, CH = 186, CG = 34;
+const narrowDrive = `M${NX0} ${NY0}H${NX1}V${NY1}H${NMX + NR}A${NR} ${NR} 0 0 0 ${NMX - NR} ${NY1}H${NX0}Z`;
+const newestFirst = roles.map((r, i) => ({ r, i })).reverse();
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="experience" resumeUrl="#">
+<Base title={`${profile.name}'s experience · ${profile.partNumber} timing characteristics`} glowAt="58% 46%" current="experience" resumeUrl={profile.resumeUrl}
+      description={`${profile.name}'s experience, drawn as an M.2 drive: every chip is a role, oldest by the screw, current by the connector.`}>
   <Stage>
-    <Intro heading="Experience" />
+    <Intro heading="Experience" role={`${countWord(roles.length)} roles, ${roles[0].from} to now`}
+           lede="Where I've worked, stored oldest to newest. The data flows toward the present, and on to the CPU.">
+      <p class="more">The oldest role sits by the screw; the current one sits on the controller, next to the connector.</p>
+      <p class="hint">Hover, tab or tap a chip to read the role.</p>
+    </Intro>
+    <Figure label={`${profile.name}'s experience drawn as an M.2 drive wired to the CPU. Each chip is a role: company, title, years and one result.`}
+            wide={[1000, 740]} narrow={[360, 770]} tour={roles.map((r) => r.id)}>
+      <Fragment slot="wide">
+        <Ghost kind="ram" x={110} y={50} w={440} h={66} />
+        <Ghost kind="gpu" x={70} y={640} w={280} h={200} />
+        <Ghost kind="nic" x={420} y={650} w={240} h={130} />
+        <Ghost kind="cpu" x={850} y={40} w={660} h={660} />
+        <path d={drive} class="paper pcb" />
+        <EdgeConnector x={X1} y={Y0 + 10} len={Y1 - Y0 - 20} d={22} side="r" key={MY - 39 - Y0 - 10} pitch={9} />
+        <Socket x={X1 + 14} y={Y0 + 4} w={18} h={Y1 - Y0 - 8} />
+        <Screw x={X0} y={MY} />
+        <text x={X0 + 34} y={Y1 - 12} font-size="10.5" class="num">M.2 2280 · NVMe · EXPERIENCE</text>
+        {LANES.map((y, i) => <>
+          <Trace points={[[X1 + 32, y], [840, y]]} blip={{ seed: (i * 7) % 10, inward: i % 2 === 1 }} />
+          <path d={`M840 ${y}h12`} class="pin stub" />
+        </>)}
+        <!-- NAND → controller → connector: each lights with the role it carries -->
+        <Net points={[[161, Y0 + 30], [161, Y0 + 16], [624, Y0 + 16], [624, Y0 + 30]]} keys={roles[0].id} r={5} />
+        <Net points={[[290 + 210 + 4, Y0 + 127], [524 - 4, Y0 + 127]]} keys={roles[1].id} />
+        <Net points={[[524 + 200 + 4, MY + 20], [X1 - 14, MY + 20]]} keys={roles.map((r) => r.id).join(' ')} />
+        {roles.map((r, i) => <RoleChip role={r} lit={litOf(i)} x={CS[i][0]} y={Y0 + 34} w={CS[i][1]} h={186} lead={{ side: 't', len: 24 }} chars={Math.floor((CS[i][1] - 32) / 6.4)} />)}
+        <!-- the timing diagram, aligned to the chips: one data-valid segment per role, then the year ruler -->
+        <text x="0" y={HY + 4} font-size="11" class="num">ROLE</text>
+        <text x="0" y={TY + 4} font-size="11" class="num">YEAR</text>
+        <path d={`M${TX[0] - 26} ${HY}H${TX[0]}M${TX[3]} ${HY}H${TX[3] + 26}`} class="thin" />
+        {TX.map((x) => <path d={`M${x} ${Y1 + 8}V${TY - 8}`} class="dash" />)}
+        {roles.map((r, i) => <>
+          <path d={hex(TX[i] + 2, TX[i + 1] - 2, HY, 28)} class="net hex" data-net={r.id} />
+          <text x={(TX[i] + TX[i + 1]) / 2} y={HY} font-size="12" text-anchor="middle" dominant-baseline="central" class="lab">{r.title}</text>
+        </>)}
+        <path d={`M${TX[0]} ${TY}H${TX[3] + 30}m-8 -5l8 5-8 5`} class="ln" />
+        {[...roles.map((r) => r.from), 'NOW'].map((yv, i) => <>
+          <path d={`M${TX[i]} ${TY - 5}v10`} class="ln" />
+          <text x={TX[i]} y={TY + 26} font-size="12" text-anchor="middle" class={i === roles.length ? 'lt' : 'num'}>{yv}</text>
+        </>)}
+        <text x={TX[0]} y={TY + 58} font-size="12" class="num">Time runs left to right, toward the connector and the CPU.</text>
+      </Fragment>
+      <Fragment slot="narrow">
+        <path d={narrowDrive} class="paper pcb" />
+        <EdgeConnector x={NX0 + 10} y={NY0} len={NX1 - NX0 - 20} d={14} side="t" key={NMX - 35 - NX0 - 10} pitch={8} />
+        <Socket x={NX0 + 4} y={NY0 - 22} w={NX1 - NX0 - 8} h={13} />
+        <Screw x={NMX} y={NY1} />
+        {newestFirst.map(({ r, i }, k) => (
+          <RoleChip role={r} lit={litOf(i)} x={NX0 + 16} y={NY0 + 26 + k * (CH + CG)} w={NX1 - NX0 - 32} h={CH} lead={{ side: k === 0 ? 'b' : 't', len: 16 }} chars={36} />
+        ))}
+        <Net points={[[NMX + 60, NY0 + 26 + 2 * (CH + CG) - 6], [NMX + 60, NY0 + 26 + CH + CG + CH + 6]]} keys={roles[0].id} square />
+        <Net points={[[NMX + 60, NY0 + 26 + CH + CG - 6], [NMX + 60, NY0 + 26 + CH + 6]]} keys={`${roles[0].id} ${roles[1].id}`} square />
+        <path d={`M14 ${NY1 - 10}V${NY0 + 10}m-5 8l5-8 5 8`} class="ln" />
+        <text x="14" y={NY0 - 4} font-size="11" text-anchor="middle" class="lt">NOW</text>
+      </Fragment>
+      <Details items={details} label="Roles" />
+    </Figure>
   </Stage>
 </Base>
