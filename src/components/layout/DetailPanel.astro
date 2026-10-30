@@ -1,10 +1,10 @@
 ---
 // Phones and touch screens: a panel docked to the bottom of the screen. Tapping any part fills it; it never covers the
-// part you tapped, and nothing opens by itself.
+// part you tapped, and nothing opens by itself. Not a live region: the page's one live region announces each tap.
 interface Props { hint?: string }
 const { hint = 'Tap a part to read it.' } = Astro.props;
 ---
-<aside class="panel" data-panel aria-live="polite" aria-label="Part details">
+<aside class="panel" data-panel aria-label="Part details">
   <p class="panel-idle">{hint}</p>
   <div class="panel-body" data-panel-body hidden></div>
 </aside>

@@ -31,6 +31,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
   <ClientRouter />
+  <!-- no script: the facts list is shown under the drawing, not only read out -->
+  <noscript><style is:inline>ul.sr { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; margin: 20px 0 0; padding-left: 1.2em; font: 15px/1.5 var(--font); color: var(--ink); }</style></noscript>
 </head>
 <body>
   <Header current={current} resumeUrl={resumeUrl} />

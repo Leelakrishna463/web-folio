@@ -6,7 +6,7 @@ export function initTour(probe: Probe, keys: string[], fig: HTMLElement): () => 
   if (!keys.length || !matchMedia('(hover: hover) and (pointer: fine)').matches) return () => {};
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
   let at = -1, held = false, resume = 0, timer = 0;
-  const next = () => { if (held) return; at = (at + 1) % keys.length; probe.show(keys[at]); };
+  const next = () => { if (held) return; at = (at + 1) % keys.length; probe.show(keys[at], 'tour'); };
   const hold = () => { held = true; clearTimeout(resume); };
   const release = () => { clearTimeout(resume); resume = window.setTimeout(() => { held = false; }, 6000); };
   fig.addEventListener('pointerenter', hold);

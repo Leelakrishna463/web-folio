@@ -8,6 +8,7 @@ import Led from '../svg/Led.astro';
 import Net from '../svg/Net.astro';
 import EdgeConnector from '../svg/EdgeConnector.astro';
 import Socket from '../svg/Socket.astro';
+import { fit } from '../../lib/text';
 import type { Profile } from '../../lib/schema';
 import type { Pt } from '../../lib/geom/path';
 interface Props { mode: 'wide' | 'narrow'; profile: Profile }
@@ -19,8 +20,8 @@ const RJ = (x: number, y: number, w: number, h: number) => {
 };
 const BUF = [['EVERY MESSAGE', 'GETS A REPLY'], ['NOTHING', 'DROPPED'], ['USUALLY', 'WITHIN'], [profile.replyTime.toUpperCase(), 'BUFFER']];
 const ctrlRows = (big: boolean): [string, number, string, number?][] => big
-  ? [['EMAIL', 13, 'lab in', 2], [EMAIL, 20, 'lt', 4], ['ONE ADDRESS', 11, 'lab in'], ['ALWAYS LISTENING', 11, 'lab in', 8], ['LEE-NIC CONTROLLER', 9.5, 'num']]
-  : [['EMAIL', 12, 'lab in', 2], [EMAIL, 19, 'lt', 4], ['ONE ADDRESS', 10.5, 'lab in'], ['ALWAYS LISTENING', 10.5, 'lab in', 6], ['LEE-NIC CONTROLLER', 9, 'num']];
+  ? [['EMAIL', 13, 'lab in', 2], [EMAIL, fit(EMAIL, C.s - 24, 20, 0.56), 'lt', 4], ['ONE ADDRESS', 11, 'lab in'], ['ALWAYS LISTENING', 11, 'lab in', 8], ['LEE-NIC CONTROLLER', 9.5, 'num']]
+  : [['EMAIL', 12, 'lab in', 2], [EMAIL, fit(EMAIL, NC.w - 24, 19, 0.56), 'lt', 4], ['ONE ADDRESS', 10.5, 'lab in'], ['ALWAYS LISTENING', 10.5, 'lab in', 6], ['LEE-NIC CONTROLLER', 9, 'num']];
 const labels = {
   ports: `Ethernet ports: link up, ${profile.status.text.toLowerCase()}.`,
   ctrl: `Controller: email ${EMAIL}. Activate to copy.`,
@@ -47,7 +48,7 @@ const NX0 = 24, NX1 = 330, NY0 = 40, NY1 = 712, NC = { x: 50, y: 72, w: 230, h: 
   <Net points={[[C.x + C.s / 2, C.y + C.s + 7], [C.x + C.s / 2, Y1 - 16]]} keys="pcie ctrl" square />
   <Probe key="ports" label={labels.ports} lead={{ from: [X0 + 56, Y0 + 13], dir: 'u', len: 24 }}>
     <rect x={X0 - 26} y={Y0 - 12} width="26" height={Y1 - Y0 + 24} class="paper" />
-    <text x={X0 - 13} y={(Y0 + Y1) / 2} font-size="11" text-anchor="middle" dominant-baseline="central" class="lt" transform={`rotate(-90 ${X0 - 13} ${(Y0 + Y1) / 2})`}>{LINK}</text>
+    <text x={X0 - 13} y={(Y0 + Y1) / 2} font-size={fit(LINK, Y1 - Y0, 11, 0.6)} text-anchor="middle" dominant-baseline="central" class="lt" transform={`rotate(-90 ${X0 - 13} ${(Y0 + Y1) / 2})`}>{LINK}</text>
     {jacks.map(({ k, jy }) => { const j = RJ(X0 + 4, jy, 104, 66); return <>
       <rect x={j.x} y={j.y} width={j.w} height={j.h} class="body" />
       <rect x={j.lx} y={j.y + j.h * 0.22} width={j.lw} height={j.h * 0.56} class="paper" />
@@ -66,7 +67,7 @@ const NX0 = 24, NX1 = 330, NY0 = 40, NY1 = 712, NC = { x: 50, y: 72, w: 230, h: 
   <Probe key="buf" label={labels.buf} lead={{ from: [BX + BW + 6, 185], dir: 'u', len: 24 }}>
     {BUF.map((w, b) => { const bx = BX + (b % 2) * (BW + 12), by = 192 + Math.floor(b / 2) * (BH + 34);
       return <Chip x={bx} y={by} w={BW} h={BH} pins="tb" pitch={8} len={4}>
-        <Lines x={bx + BW / 2} y={by + BH / 2 - 8} rows={[[w[0], 10, 'lt'], [w[1], 10, b === 3 ? 'num' : 'lt']]} lh={1.45} />
+        <Lines x={bx + BW / 2} y={by + BH / 2 - 8} rows={[[w[0], fit(w[0], BW - 2, 10, 0.6), 'lt'], [w[1], 10, b === 3 ? 'num' : 'lt']]} lh={1.45} />
       </Chip>; })}
   </Probe>
   <Probe key="pcie" label={labels.pcie} href={profile.resumeUrl} lead={{ from: [500, Y1 + 33], dir: 'd', len: 24 }}>
@@ -96,7 +97,7 @@ const NX0 = 24, NX1 = 330, NY0 = 40, NY1 = 712, NC = { x: 50, y: 72, w: 230, h: 
   <Probe key="buf" label={labels.buf} lead={{ from: [172, 293], dir: 'u', len: 16 }}>
     {BUF.map((w, b) => { const bx = 50 + (b % 2) * 124, by = 300 + Math.floor(b / 2) * 84;
       return <Chip x={bx} y={by} w={116} h={58} pins="tb" pitch={8} len={4}>
-        <Lines x={bx + 58} y={by + 21} rows={[[w[0], 10.5, 'lt'], [w[1], 10.5, b === 3 ? 'num' : 'lt']]} lh={1.45} />
+        <Lines x={bx + 58} y={by + 21} rows={[[w[0], fit(w[0], 110, 10.5, 0.6), 'lt'], [w[1], 10.5, b === 3 ? 'num' : 'lt']]} lh={1.45} />
       </Chip>; })}
   </Probe>
   <Probe key="ports" label={labels.ports} lead={{ from: [172, 491], dir: 'u', len: 16 }}>
@@ -109,6 +110,6 @@ const NX0 = 24, NX1 = 330, NY0 = 40, NY1 = 712, NC = { x: 50, y: 72, w: 230, h: 
       <Led x={j.x + j.w - 11} y={j.y + 4} blink delay={k * 0.9} />
     </>; })}
     <rect x={NX0 - 10} y={NY1} width={NX1 - NX0 + 20} height="24" class="paper" />
-    <text x={(NX0 + NX1) / 2} y={NY1 + 12} font-size="10.5" text-anchor="middle" dominant-baseline="central" class="lt">{LINK}</text>
+    <text x={(NX0 + NX1) / 2} y={NY1 + 12} font-size={fit(LINK, NX1 - NX0, 10.5, 0.6)} text-anchor="middle" dominant-baseline="central" class="lt">{LINK}</text>
   </Probe>
 </>}

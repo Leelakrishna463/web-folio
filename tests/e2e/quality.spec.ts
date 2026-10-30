@@ -24,6 +24,9 @@ test.describe('without JavaScript', () => {
       await page.goto(path);
       const text = await page.locator('body').textContent();
       for (const f of FACTS[path]) expect(text, f).toContain(f);
+      // and on screen, not only in the screen-reader list
+      const box = await page.locator('ul.sr').first().boundingBox();
+      expect(box?.width ?? 0, 'the facts list is shown').toBeGreaterThan(100);
       await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: /Contact/ }).click();
       await expect(page).toHaveURL(/\/contact$/);
     });

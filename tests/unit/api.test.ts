@@ -57,9 +57,49 @@ describe('getResource (remote API)', () => {
     await expect(getResource('profile', { base: 'https://api.example.test', fetchImpl })).rejects.toThrow(/profile.*503/);
   });
 
+  it('names the resource when a 200 response is not JSON', async () => {
+    const fetchImpl = async () => new Response('<html>Bad gateway</html>', { status: 200 });
+    await expect(getResource('profile', { base: 'https://api.example.test', fetchImpl })).rejects.toThrow(/profile/);
+  });
+
+  it('gives up on a hanging API, naming the resource', async () => {
+    const fetchImpl = (_url: string, init?: RequestInit) => new Promise<Response>((_, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason));
+    });
+    await expect(getResource('skills', { base: 'https://api.example.test', fetchImpl, timeoutMs: 20 })).rejects.toThrow(/skills/);
+  });
+
   it('rejects data that does not match the schema', async () => {
     const fetchImpl = async () => new Response(JSON.stringify({ projects: [] }));
     await expect(getResource('projects', { base: 'https://api.example.test', fetchImpl })).rejects.toThrow();
+  });
+});
+
+describe('schemas only accept what the drawings can draw', () => {
+  const remote = (body: unknown) => ({ base: 'https://api.example.test', fetchImpl: async () => new Response(JSON.stringify(body)) });
+  const experienceFile = { roles: [
+    { id: 'r1', kind: 'NAND', company: 'A', title: 'T', from: '2019', to: '2021', impact: 'I' },
+    { id: 'r2', kind: 'NAND', company: 'B', title: 'T', from: '2021', to: '2023', impact: 'I' },
+    { id: 'r3', kind: 'CTRL', company: 'C', title: 'T', from: '2023', to: null, impact: 'I' },
+  ] };
+
+  it('experience: three roles draw', async () => {
+    await expect(getResource('experience', remote(experienceFile))).resolves.toBeTruthy();
+  });
+
+  it('experience: four roles are refused, naming the resource', async () => {
+    const roles = [experienceFile.roles[0], ...experienceFile.roles];
+    await expect(getResource('experience', remote({ roles }))).rejects.toThrow(/experience/);
+  });
+
+  it('experience: the last role must be current, on the controller', async () => {
+    const roles = [...experienceFile.roles.slice(0, 2), { ...experienceFile.roles[2], to: '2024' }];
+    await expect(getResource('experience', remote({ roles }))).rejects.toThrow(/experience/);
+  });
+
+  it('about: an unknown pin is refused, naming the resource', async () => {
+    const pins = [{ id: 'golang', label: 'GO', type: 'I/O', lines: ['Go'] }];
+    await expect(getResource('about', remote({ pins }))).rejects.toThrow(/about/);
   });
 });
 

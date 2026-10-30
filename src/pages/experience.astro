@@ -14,7 +14,7 @@ import Socket from '../components/svg/Socket.astro';
 import Screw from '../components/svg/Screw.astro';
 import RoleChip from '../components/parts/RoleChip.astro';
 import { getResource } from '../lib/api';
-import { countWord } from '../lib/text';
+import { countWord, fit } from '../lib/text';
 import type { Detail } from '../lib/detail';
 
 const [profile, experience] = await Promise.all([getResource('profile'), getResource('experience')]);
@@ -75,7 +75,7 @@ const newestFirst = roles.map((r, i) => ({ r, i })).reverse();
         {TX.map((x) => <path d={`M${x} ${Y1 + 8}V${TY - 8}`} class="dash" />)}
         {roles.map((r, i) => <>
           <path d={hex(TX[i] + 2, TX[i + 1] - 2, HY, 28)} class="net hex" data-net={r.id} />
-          <text x={(TX[i] + TX[i + 1]) / 2} y={HY} font-size="12" text-anchor="middle" dominant-baseline="central" class="lab">{r.title}</text>
+          <text x={(TX[i] + TX[i + 1]) / 2} y={HY} font-size={fit(r.title, TX[i + 1] - TX[i] - 24, 12, 0.5)} text-anchor="middle" dominant-baseline="central" class="lab">{r.title}</text>
         </>)}
         <path d={`M${TX[0]} ${TY}H${TX[3] + 30}m-8 -5l8 5-8 5`} class="ln" />
         {[...roles.map((r) => r.from), 'NOW'].map((yv, i) => <>

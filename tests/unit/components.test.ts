@@ -93,3 +93,54 @@ describe('Ghost', () => {
     expect(html).toContain('RAM · SKILLS');
   });
 });
+
+// ---- Review Focus 1: real content, however long, stays inside its chip ----
+import NicCard from '../../src/components/parts/NicCard.astro';
+import RoleChip from '../../src/components/parts/RoleChip.astro';
+import VramChip from '../../src/components/parts/VramChip.astro';
+import profileFile from '../../src/data/api/v1/profile.json';
+
+const LONG = 'Abcdefghij Klmnopqrst Uvwxyzabcd Efghijklmn';   // 43 characters
+/** every <text> as { size, text } */
+const texts = (html: string) => [...html.matchAll(/<text[^>]*font-size="([\d.]+)"[^>]*>([^<]*)<\/text>/g)]
+  .map((m) => ({ size: Number(m[1]), text: m[2].replace(/&amp;/g, '&') }));
+const sizeOf = (html: string, t: string) => texts(html).find((x) => x.text.includes(t))!.size;
+
+describe('lettering fits its part', () => {
+  it('NicCard: a long email stays inside the controller', async () => {
+    const email = 'firstname.lastname.backend@example-company.com';
+    for (const [mode, room] of [['wide', 196], ['narrow', 206]] as const) {
+      const html = await c.renderToString(NicCard, { props: { mode, profile: { ...profileFile, email } } });
+      expect(sizeOf(html, email) * 0.56 * email.length, mode).toBeLessThanOrEqual(room);
+    }
+  });
+
+  it('NicCard: the placeholder email keeps its design size', async () => {
+    const html = await c.renderToString(NicCard, { props: { mode: 'wide', profile: profileFile } });
+    expect(sizeOf(html, profileFile.email)).toBe(20);
+  });
+
+  const role = { id: 'r9', kind: 'NAND' as const, company: LONG, title: LONG, from: '2019', to: '2021', impact: 'word '.repeat(120).trim() };
+  it('RoleChip: long company and title fit, and the impact stops inside the chip', async () => {
+    const html = await c.renderToString(RoleChip, { props: { role, lit: 1, x: 0, y: 0, w: 210, h: 186, lead: { side: 't', len: 24 }, chars: 27 } });
+    // the company is bold caps (.lt, ~0.6em a character), the title the narrower .lab (~0.5em)
+    const [company, title] = texts(html).filter((x) => x.text === LONG);
+    expect(company.size * 0.6 * LONG.length).toBeLessThanOrEqual(210 - 32);
+    expect(title.size * 0.5 * LONG.length).toBeLessThanOrEqual(210 - 32);
+    const impact = [...html.matchAll(/<text[^>]*y="([\d.]+)"[^>]*class="mk"[^>]*>([^<]*)</g)];
+    expect(impact.length).toBeGreaterThan(0);
+    for (const m of impact) expect(Number(m[1])).toBeLessThanOrEqual(186 - 8);
+    expect(impact.at(-1)![2].endsWith('…')).toBe(true);
+  });
+
+  it('VramChip: long name, stack and result fit the chip', async () => {
+    const project = { id: 'p9', name: LONG, stack: ['PostgreSQL', 'Elasticsearch', 'Kubernetes', 'Terraform'], problem: 'x', fix: 'y', result: `${LONG} ${LONG}` };
+    const html = await c.renderToString(VramChip, { props: { project, index: 0, x: 0, y: 0, w: 380, h: 106 } });
+    const room = 380 - 32;
+    expect(sizeOf(html, LONG) * 0.6 * LONG.length).toBeLessThanOrEqual(room);
+    const stack = project.stack.join(' · ').toUpperCase();
+    expect(sizeOf(html, stack) * 0.56 * stack.length).toBeLessThanOrEqual(room - 64);
+    const result = `→ ${project.result}`;
+    expect(sizeOf(html, result) * 0.5 * result.length).toBeLessThanOrEqual(room);
+  });
+});

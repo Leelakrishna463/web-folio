@@ -2,6 +2,7 @@
 // An IC package: body, optional pin rows, pin-1 mark and lettering sized to fit. Given a probe, it becomes a part the
 // reader can hover, focus or tap. Extra lettering goes in the default slot.
 import Pins from './Pins.astro';
+import { fit } from '../../lib/text';
 
 /** a probe-able part: key names it (nets with this key light with it); lead is the line that shoots out of its edge
  *  when probed, and its tip is where a popup's cord starts (default: 12 units out of the right edge) */
@@ -18,9 +19,8 @@ interface Props {
 const { x, y, w, h, pins = '', pitch = 8, len = 4, label, labelMax = 14, labelY, labelClass = 'lt', lit, mark = true,
   paper = false, probe, class: cls = '' } = Astro.props;
 const PAD = 12;
-// lettering fits the box: Archivo's condensed caps run about 0.64em per character
-// (rounded down, so the written size can never overflow the box)
-const size = label ? Math.floor(Math.min(labelMax, (w - PAD) / (label.length * 0.64)) * 100) / 100 : 0;
+// lettering fits the box (rounded down, so the written size can never overflow it)
+const size = label ? fit(label, w - PAD, labelMax) : 0;
 type Side = 't' | 'b' | 'l' | 'r';
 const rows = (pins.split('') as Side[]).map((s) => {
   const horiz = s === 't' || s === 'b', span = horiz ? w : h, n = Math.max(2, Math.floor((span - 10) / pitch));

@@ -8,8 +8,9 @@ export const RESOURCES = Object.keys(schemas) as Resource[];
 
 const local = import.meta.glob<{ default: unknown }>('../data/api/v1/*.json', { eager: true });
 
-type Fetch = (url: string) => Promise<Response>;
-interface Options { base?: string; fetchImpl?: Fetch }
+type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
+/** timeoutMs: how long to wait for the API before failing the build (default 15 s) */
+interface Options { base?: string; fetchImpl?: Fetch; timeoutMs?: number }
 
 export async function getResource<R extends Resource>(name: R, opts: Options = {}): Promise<ResourceMap[R]> {
   const base = opts.base ?? import.meta.env.LEE_API_BASE;
@@ -18,12 +19,16 @@ export async function getResource<R extends Resource>(name: R, opts: Options = {
     const url = `${base.replace(/\/$/, '')}/v1/${name}`;
     let res: Response;
     try {
-      res = await (opts.fetchImpl ?? fetch)(url);
+      res = await (opts.fetchImpl ?? fetch)(url, { signal: AbortSignal.timeout(opts.timeoutMs ?? 15_000) });
     } catch (err) {
       throw new Error(`API resource "${name}" could not be fetched from ${url}: ${(err as Error).message}`);
     }
     if (!res.ok) throw new Error(`API resource "${name}" returned ${res.status} from ${url}`);
-    raw = await res.json();
+    try {
+      raw = await res.json();
+    } catch (err) {
+      throw new Error(`API resource "${name}" from ${url} is not JSON: ${(err as Error).message}`);
+    }
   } else {
     const file = local[`../data/api/v1/${name}.json`];
     if (!file) throw new Error(`API resource "${name}" has no file at src/data/api/v1/${name}.json`);

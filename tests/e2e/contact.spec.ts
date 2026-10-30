@@ -32,6 +32,16 @@ test.describe('desktop', () => {
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(profile.email);
   });
 
+  test('a double click on Copy still goes back to "Copy"', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/contact');
+    const btn = page.locator('[data-copy-btn]');
+    await btn.dblclick();
+    await expect(btn).toHaveText('Copied');
+    await page.waitForTimeout(2500);
+    await expect(btn).toHaveText('Copy');
+  });
+
   test('link LEDs are green, activity LEDs blink', async ({ page }) => {
     await page.goto('/contact');
     await expect(page.locator('svg.wide .led.ok')).toHaveCount(4);

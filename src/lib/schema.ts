@@ -23,9 +23,12 @@ export const profileSchema = z.object({
   replyTime: text,
 });
 
+// the drawings place these by name (about.astro), so only these exist
+export const ABOUT_PINS = ['python', 'postgresql', 'apis', 'email', 'resume', 'years', 'timezone'] as const;
+
 export const aboutSchema = z.object({
   pins: z.array(z.object({
-    id: text,
+    id: z.enum(ABOUT_PINS),
     label: text,
     type: z.enum(['I/O', 'Output', 'Clock']),
     lines: z.array(text).min(1),
@@ -55,7 +58,10 @@ export const experienceSchema = z.object({
     from: text,
     to: text.nullable(),
     impact: text,
-  })).min(1),
+  })).length(3).refine(
+    (roles) => roles.every((r, i) => (i === roles.length - 1) === (r.to === null && r.kind === 'CTRL')),
+    'the drive draws three roles, oldest first: two finished (kind NAND) and the current one last (to: null, kind CTRL)',
+  ),
 });
 
 export const projectsSchema = z.object({

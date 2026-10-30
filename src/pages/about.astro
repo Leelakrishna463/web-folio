@@ -9,15 +9,17 @@ import Ghost from '../components/svg/Ghost.astro';
 import Cpu from '../components/parts/Cpu.astro';
 import { getResource } from '../lib/api';
 import type { Detail } from '../lib/detail';
+import type { ABOUT_PINS } from '../lib/schema';
 
 const [profile, about] = await Promise.all([getResource('profile'), getResource('about')]);
 
 // where each fact pin sits on the package: wide is a QFP-48 (12 a side), narrow a TSSOP-24 (12 down each side)
 type Side = 'l' | 'r' | 't' | 'b';
-const WIDE: Record<string, [Side, number]> = { python: ['l', 3], postgresql: ['l', 8], apis: ['b', 6], email: ['r', 2], resume: ['r', 6], years: ['r', 9], timezone: ['t', 4] };
-const NARROW: Record<string, [Side, number]> = { python: ['l', 2], postgresql: ['l', 5], apis: ['l', 8], email: ['r', 2], resume: ['r', 4], years: ['r', 7], timezone: ['r', 9] };
+type Pin = (typeof ABOUT_PINS)[number];
+const WIDE: Record<Pin, [Side, number]> = { python: ['l', 3], postgresql: ['l', 8], apis: ['b', 6], email: ['r', 2], resume: ['r', 6], years: ['r', 9], timezone: ['t', 4] };
+const NARROW: Record<Pin, [Side, number]> = { python: ['l', 2], postgresql: ['l', 5], apis: ['l', 8], email: ['r', 2], resume: ['r', 4], years: ['r', 7], timezone: ['r', 9] };
 // how far each fact pin runs out to its socket: lengths differ widely, so no two sockets line up
-const RUN: Record<string, number> = { python: 70, postgresql: 8, apis: 10, email: 64, resume: 6, years: 36, timezone: 20 };
+const RUN: Record<Pin, number> = { python: 70, postgresql: 8, apis: 10, email: 64, resume: 6, years: 36, timezone: 20 };
 const pins = about.pins.map((p) => (p.id === 'resume' && p.action ? { ...p, action: { ...p.action, href: profile.resumeUrl } } : p));
 
 // pin numbers run anticlockwise from pin 1 at the top of the left side
