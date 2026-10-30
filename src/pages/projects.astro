@@ -1,10 +1,96 @@
 ---
+// Projects: a graphics card's circuit side; the GPU renders each project into its own memory chip, and probing a
+// project lights its render path. Port of design/lee-gpu.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Ghost from '../components/svg/Ghost.astro';
+import Chip from '../components/svg/Chip.astro';
+import Lines from '../components/svg/Lines.astro';
+import Net from '../components/svg/Net.astro';
+import Trace from '../components/svg/Trace.astro';
+import EdgeConnector from '../components/svg/EdgeConnector.astro';
+import Socket from '../components/svg/Socket.astro';
+import VramChip from '../components/parts/VramChip.astro';
+import { getResource } from '../lib/api';
+import { countWord } from '../lib/text';
+import type { Pt } from '../lib/geom/path';
+import type { Detail } from '../lib/detail';
+
+const [profile, data] = await Promise.all([getResource('profile'), getResource('projects')]);
+const list = data.projects;
+const details: Detail[] = list.map((p) => ({
+  key: p.id, title: p.name, tag: p.stack.join(' · ').toUpperCase(),
+  rows: [{ small: 'PROBLEM' }, { text: p.problem }, { small: 'WHAT I DID' }, { text: p.fix }, { small: 'RESULT' }, { text: p.result }],
+}));
+const gpuMark = (s: number) => [['GPU', s * 0.16, 'lt', -2], ['LEE-RENDER', s * 0.052, 'lab'], [`${list.length} PROJECTS SHIPPED`, s * 0.045, 'num']] as [string, number, string, number?][];
+
+// ---- wide: the card lies flat, bracket on the left, x16 fingers along the bottom into its slot ----
+const X0 = 40, X1 = 780, Y0 = 120, Y1 = 540, VX = 370, VW = 380, VH = 106, vy = (i: number) => Y0 + 26 + i * (VH + 26);
+// a three-lane render path from the GPU's right pins to each chip's left edge; the turn order keeps paths from crossing
+const render = list.flatMap((p, i) => [0, 1, 2].map((l) => {
+  const sy = 257 + i * 45 + l * 9, ey = vy(i) + VH / 2 - 9 + l * 9, mid = i === 0 ? 312 + l * 8 : i === 1 ? 342 + (2 - l) * 8 : 312 + (2 - l) * 8;
+  return { key: p.id, pts: [[297, sy], [mid, sy], [mid, ey], [VX - 4, ey]] as Pt[] };
+}));
+// the fingers' lanes drop out of the slot and run on into the CPU, the rightmost turning first so none cross
+const lanes = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => {
+  const lx = 750 - k * 24, turn = 584 + k * 12;
+  return { pts: [[lx, Y1 + 32], [lx, turn], [lx + 10, turn + 10], [840, turn + 10]] as Pt[], y: turn + 10, seed: (k * 7) % 10, inward: k % 2 === 1 };
+});
+// ---- narrow: the card stands upright, GPU at the top, fingers down the right edge ----
+const NX0 = 20, NX1 = 330, NY0 = 30, NY1 = 740, CY0 = 250, CH = 124, nvy = (i: number) => CY0 + i * (CH + 24);
+const narrowRender = list.flatMap((p, i) => [0, 1].map((l) => {
+  const lane = 42 - i * 7 - (1 - l) * 3, sy = 72 + 9 * (10 - i * 3 + l), ey = nvy(i) + 34 + (1 - l) * 8;
+  return { key: p.id, pts: [[99, sy], [lane, sy], [lane, ey], [54, ey]] as Pt[] };
+}));
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="projects" resumeUrl="#">
+<Base title={`${profile.name}'s projects · ${profile.partNumber} typical application`} glowAt="56% 50%" current="projects" resumeUrl={profile.resumeUrl}
+      description={`${profile.name}'s projects, drawn as a graphics card: the GPU renders each project into its own memory chip.`}>
   <Stage>
-    <Intro heading="Projects" />
+    <Intro heading="Projects" role={`${countWord(list.length)} projects shipped`}
+           lede="Things I've built. The GPU renders each project into its own memory chip.">
+      <p class="more">Every chip reads the same way: the problem, what I did, and the result.</p>
+      <p class="hint">Hover, tab or tap a memory chip to read the project.</p>
+    </Intro>
+    <Figure label={`${profile.name}'s projects drawn as a graphics card wired to the CPU. The GPU renders each project into its own memory chip: problem, fix and result.`}
+            wide={[1000, 740]} narrow={[360, 750]} tour={list.map((p) => p.id)} cardWidth={230}>
+      <Fragment slot="wide">
+        <Ghost kind="ram" x={120} y={24} w={420} h={66} />
+        <Ghost kind="ssd" x={40} y={650} w={270} h={62} />
+        <Ghost kind="nic" x={340} y={680} w={220} h={120} />
+        <Ghost kind="cpu" x={850} y={60} w={640} h={640} />
+        <rect x={X0 - 16} y={Y0 - 10} width="16" height={Y1 - Y0 + 20} class="paper" />
+        {[90, 190, 290, 390].map((py) => <rect x={X0 - 12} y={Y0 + py - 44} width="8" height="48" class="thin" />)}
+        <rect x={X0} y={Y0} width={X1 - X0} height={Y1 - Y0} class="paper pcb" />
+        <rect x={X1 - 90} y={Y0 - 10} width="70" height="10" class="body" />
+        <EdgeConnector x={256} y={Y1} len={508} d={24} side="b" key={70} pitch={9} snug />
+        <Socket x={248} y={Y1 + 15} w={524} h={17} />
+        <text x={X0 + 18} y={Y0 + 24} font-size="10.5" class="num">PCIE X16 · CIRCUIT SIDE · PROJECTS</text>
+        {lanes.map((l) => <>
+          <Trace points={l.pts} blip={{ seed: l.seed, inward: l.inward }} />
+          <path d={`M840 ${l.y}h12`} class="pin stub" />
+        </>)}
+        {render.map((r) => <Net points={r.pts} keys={r.key} r={6} />)}
+        <Chip x={80} y={220} w={210} h={210} pins="tblr" pitch={9} len={5} lit={3} class="mark">
+          <rect x={80 + 42} y={220 + 42} width="126" height="126" class="thin" />
+          <Lines x={185} y={325 - 14} rows={gpuMark(210)} lh={1.45} />
+        </Chip>
+        {list.map((p, i) => <VramChip project={p} index={i} x={VX} y={vy(i)} w={VW} h={VH} />)}
+      </Fragment>
+      <Fragment slot="narrow">
+        <rect x={NX0} y={NY0} width={NX1 - NX0} height={NY1 - NY0} class="paper pcb" />
+        <EdgeConnector x={NX1} y={NY0 + 16} len={288} d={14} side="r" key={110} pitch={7} snug />
+        <Socket x={NX1 + 9} y={NY0 + 8} w={13} h={304} />
+        {narrowRender.map((r) => <Net points={r.pts} keys={r.key} r={3} />)}
+        <Chip x={104} y={60} w={150} h={150} pins="tblr" pitch={9} len={5} lit={3} class="mark">
+          <rect x={104 + 30} y={60 + 30} width="90" height="90" class="thin" />
+          <Lines x={179} y={135 - 14} rows={gpuMark(150)} lh={1.45} />
+        </Chip>
+        {list.map((p, i) => <VramChip project={p} index={i} x={58} y={nvy(i)} w={256} h={CH} narrow />)}
+      </Fragment>
+      <Details items={details} label="Projects" />
+    </Figure>
   </Stage>
 </Base>

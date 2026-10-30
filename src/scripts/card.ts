@@ -55,7 +55,7 @@ export function initCard(svg: SVGSVGElement): void {
     const top = Math.max(sr.top, stage.top, 0), bottom = Math.min(sr.bottom, stage.bottom, innerHeight);
     const view: Rect = { x: toX(left), y: toY(top), w: (right - left) / m.a, h: (bottom - top) / m.d };
 
-    card.style.setProperty('--w', '260px');
+    card.style.setProperty('--w', `${svg.closest<HTMLElement>('[data-fig]')?.dataset.cardW ?? 260}px`);
     const W = card.offsetWidth / m.a, H = card.offsetHeight / m.d;
     const spot = place({ W, H, tip, obstacles: obstacles(svg, toUnits), view });
     const cr = canvas.getBoundingClientRect();
