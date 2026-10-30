@@ -1,0 +1,33 @@
+---
+// U5 on the Overview: a network card, four jacks on its bracket, the controller that is Lee's email, a buffer; its keyed
+// edge connector sits on the back end, facing the CPU, in the slot its bus lands on
+import Probe from '../../svg/Probe.astro';
+import Chip from '../../svg/Chip.astro';
+import Lines from '../../svg/Lines.astro';
+import Led from '../../svg/Led.astro';
+import EdgeConnector from '../../svg/EdgeConnector.astro';
+import Socket from '../../svg/Socket.astro';
+import type { Pt } from '../../../lib/geom/path';
+interface Props { x: number; y: number; w: number; h: number; label: string; lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number } }
+const { x, y, w, h, label, lead } = Astro.props;
+const jh = (h - 24) / 4 - 4;
+const cw = 110, ch = h - 44, cx = x + w - 40 - 30 - cw, cy = y + 22;
+---
+<Probe key="u5" label={label} href="/contact" lead={lead}>
+  <rect x={x + w} y={y - 8} width="12" height={h + 16} class="paper" />
+  <rect x={x} y={y} width={w} height={h} class="paper pcb" />
+  {[0, 1, 2, 3].map((j) => {
+    const jy = y + 12 + j * (jh + 5);
+    return <>
+      <rect x={x + w - 40} y={jy} width="40" height={jh} class="body" />
+      <Led x={x + w - 36} y={jy + 4} w={6} h={4} ok />
+      <Led x={x + w - 10} y={jy + 4} w={6} h={4} blink delay={j * 0.8} />
+    </>;
+  })}
+  <Chip x={cx} y={cy} w={cw} h={ch} pins="tblr" pitch={7} len={4}>
+    <Lines x={cx + cw / 2} y={cy + ch / 2 - 12} rows={[['EMAIL', 18, 'lt'], ['ALWAYS LISTENING', 10, 'mk']]} lh={1.5} />
+  </Chip>
+  <Chip x={x + 16} y={y + 18} w={cx - x - 44} h={h * 0.36} pins="tb" pitch={7} len={4} label="BUFFER" labelMax={12} labelClass="mk" />
+  <EdgeConnector x={x} y={y + 16} len={h - 32} d={8} side="l" key={(h - 32) * 0.3} pitch={5} snug />
+  <Socket x={x - 14} y={y + 12} w={8} h={h - 24} />
+</Probe>

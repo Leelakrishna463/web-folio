@@ -1,0 +1,31 @@
+---
+// U3 on the Overview: an M.2 drive, roles stored oldest to newest; the current role always sits by the connector.
+// flip: connector on the left, screw notch on the right.
+import Probe from '../../svg/Probe.astro';
+import Chip from '../../svg/Chip.astro';
+import Lines from '../../svg/Lines.astro';
+import EdgeConnector from '../../svg/EdgeConnector.astro';
+import Socket from '../../svg/Socket.astro';
+import type { Pt } from '../../../lib/geom/path';
+interface Role { company: string; years: string }
+interface Props { x: number; y: number; w: number; h: number; flip?: boolean; roles: Role[]; label: string; lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number } }
+const { x, y, w, h, flip = false, roles, label, lead } = Astro.props;
+const r = 9, sx = flip ? x + w : x, ex = flip ? x : x + w;
+const outline = `M${sx} ${y}H${flip ? x : x + w}V${y + h}H${sx}V${y + h / 2 + r}A${r} ${r} 0 0 ${flip ? 1 : 0} ${sx} ${y + h / 2 - r}Z`;
+const cw = (w - 40 - 16) / 3;
+const chips = roles.map((ro, i) => {
+  const cx = flip ? x + w - 22 - cw - i * (cw + 8) : x + 22 + i * (cw + 8);
+  const fs = Math.min(11.5, (cw - 18) / (ro.company.length * 0.64));
+  return { ...ro, cx, fs, current: i === roles.length - 1 };
+});
+---
+<Probe key="u3" label={label} href="/experience" lead={lead}>
+  <path d={outline} class="paper pcb" />
+  <EdgeConnector x={ex} y={y + 6} len={h - 12} d={8} side={flip ? 'l' : 'r'} key={h * 0.35 - 6} pitch={5} />
+  <Socket x={flip ? ex - 14 : ex + 6} y={y + 2} w={8} h={h - 4} />
+  {chips.map((c) => (
+    <Chip x={c.cx} y={y + 9} w={cw} h={h - 18} mark={c.current}>
+      <Lines x={c.cx + cw / 2} y={y + h / 2 - c.fs * 0.35} rows={[[c.company, c.fs, 'lt'], [c.years, c.fs * 0.92, 'mk']]} lh={1.35} />
+    </Chip>
+  ))}
+</Probe>

@@ -1,0 +1,20 @@
+---
+// U1 on the Overview: the CPU at the board's centre, always lit, its lid etched with who Lee is
+import Probe from '../../svg/Probe.astro';
+import Pins from '../../svg/Pins.astro';
+import Lines from '../../svg/Lines.astro';
+import type { Pt } from '../../../lib/geom/path';
+interface Props { cx: number; cy: number; s: number; n: number; label: string; lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number } }
+const { cx, cy, s, n, label, lead } = Astro.props;
+const h = s / 2, pitch = (s - 32) / (n - 1), k = s / 140;
+---
+<Probe key="u1" label={label} href="/about" lead={lead} class="l3 mark lit">
+  <Pins side="t" x={cx - h + 16} y={cy - h} n={n} pitch={pitch} len={8} />
+  <Pins side="b" x={cx - h + 16} y={cy + h} n={n} pitch={pitch} len={8} />
+  <Pins side="l" x={cx - h} y={cy - h + 16} n={n} pitch={pitch} len={8} />
+  <Pins side="r" x={cx + h} y={cy - h + 16} n={n} pitch={pitch} len={8} />
+  <rect x={cx - h} y={cy - h} width={s} height={s} class="body" />
+  <rect x={cx - h + 10} y={cy - h + 10} width={s - 20} height={s - 20} class="thin in" />
+  <path d={`M${cx - h + 16} ${cy + h - 16}v-9l9 9z`} class="ink in" />
+  <Lines x={cx} y={cy - 20 * k} rows={[['LEE', 36 * k, 'lt', -6 * k], ['SR BACKEND ENGINEER', 9.5 * k, 'lab in', 2 * k], ['PYTHON · DJANGO · PGSQL', 9 * k, 'lab in']]} />
+</Probe>

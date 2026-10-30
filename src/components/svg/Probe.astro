@@ -1,0 +1,21 @@
+---
+// A probe-able part made of several shapes (a card, a stick, a drive): hover, focus or tap it to light it. Its lead
+// shoots out from `lead.from` when probed; the lead's tip is where a popup's cord starts.
+import type { Pt } from '../../lib/geom/path';
+interface Props {
+  key: string;
+  label: string;
+  href?: string;
+  lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number };
+  class?: string;
+}
+const { key, label, href, lead, class: cls = '' } = Astro.props;
+const L = lead.len ?? 22;
+const step: Pt = lead.dir === 'u' ? [0, -L] : lead.dir === 'd' ? [0, L] : lead.dir === 'l' ? [-L, 0] : [L, 0];
+const tip: Pt = [lead.from[0] + step[0], lead.from[1] + step[1]];
+---
+<g class={`pr ${cls}`.trim()} data-key={key} data-href={href} data-tip={`${tip[0]},${tip[1]}`} tabindex="0"
+   role={href ? 'link' : 'button'} aria-label={label}>
+  <slot />
+  <path d={`M${lead.from[0]} ${lead.from[1]}l${step[0]} ${step[1]}`} class="ext" stroke-dasharray={L} stroke-dashoffset={L} />
+</g>

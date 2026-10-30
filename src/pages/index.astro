@@ -1,10 +1,136 @@
 ---
+// Overview: the whole board. Every part connects only to the CPU, by four identical buses turned a quarter at a time.
+// Port of design/lee-board.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Net from '../components/svg/Net.astro';
+import Trace from '../components/svg/Trace.astro';
+import Tag from '../components/svg/Tag.astro';
+import BoardCpu from '../components/parts/board/BoardCpu.astro';
+import BoardGpu from '../components/parts/board/BoardGpu.astro';
+import BoardNic from '../components/parts/board/BoardNic.astro';
+import BoardRam from '../components/parts/board/BoardRam.astro';
+import BoardSsd from '../components/parts/board/BoardSsd.astro';
+import { getResource } from '../lib/api';
+import { busLanes } from '../lib/geom/bus';
+import { rotate, type Pt } from '../lib/geom/path';
+import type { Detail } from '../lib/detail';
+
+const [profile, skills, experience, projects] = await Promise.all([
+  getResource('profile'), getResource('skills'), getResource('experience'), getResource('projects'),
+]);
+const up = (s: string) => s.toUpperCase();
+const projectNames = projects.projects.map((p) => up(p.name));
+const roles = experience.roles.map((r) => ({ company: up(r.company), years: r.to ? `${r.from}–${r.to}` : 'NOW' }));
+const STICK = ['u2a', 'u2b', 'u2c', 'u2d'];
+const sticks = skills.modules.map((m, i) => {
+  const names = m.chips.map((c) => c?.name ?? null);
+  const list = names.filter(Boolean).join(', ');
+  return {
+    key: STICK[i], short: m.short, chips: names.map((n) => (n ? up(n) : null)),
+    label: `U2, RAM, ${m.group} module: ${list}${names.includes(null) ? ', and a free socket' : ''}. Opens Skills, page 3.`,
+    detail: { key: STICK[i], title: up(m.group), tag: `U2 · DIMM ${m.id}`,
+      rows: [{ text: `${list}${names.includes(null) ? ', and a free socket for the next skill' : ''}.` }, { text: 'One of 4 skill modules.' }] },
+  };
+});
+const open = { act: 'Open the page' };
+const details: Detail[] = [
+  { key: 'u1', title: 'ABOUT ME', tag: 'U1 · CPU', rows: [{ text: `${profile.name}, ${profile.role}: ${profile.coreStack.slice(0, 3).join(', ')}, ${profile.city}.` }, open] },
+  ...sticks.map((s) => ({ ...s.detail, rows: [...s.detail.rows, open] })),
+  { key: 'u3', title: 'EXPERIENCE', tag: 'U3 · SSD', rows: [{ text: `${experience.roles.length} roles stored oldest to newest; the current one sits on the controller.` }, open] },
+  { key: 'u4', title: 'PROJECTS', tag: 'U4 · GPU', rows: [{ text: `${projects.projects.length} projects, each rendered into its own memory chip: problem, fix, result.` }, open] },
+  { key: 'u5', title: 'CONTACT', tag: 'U5 · NIC', rows: [{ text: 'One channel: email. Every message gets a reply.' }, open] },
+];
+
+// ---- the wide board: U1 in the middle, lit; one bus shape turned a quarter at a time for each side ----
+const C: Pt = [500, 370], S = 160, N = 12, PITCH = (S - 32) / (N - 1);
+const CL = C[0] - S / 2 - 8, CT = C[1] - S / 2 - 8, CR = C[0] + S / 2 + 8;
+const lanes = busLanes({ centre: C, pinPitch: PITCH, lanes: 8, bundle: 6, startX: CL, neckX: CL - 8, turnX: 340, slotY: 214, cut0: 4 });
+const RAM = { x: 730, y: 526, w: 256, sh: 38, gap: 10 };
+// every lane: GPU (left, as drawn), NIC (top), SSD (bottom), and the RAM (right) peeling off two lanes per stick
+const buses = lanes.flatMap((b, k) => {
+  const seed = k % 10, quiet = k % 2 === 1, turn = (q: 0 | 1 | 2 | 3) => b.map((p) => rotate(p, C, q));
+  const r = turn(2), last = r[r.length - 1], stick = 3 - (k >> 1), sy = RAM.y + stick * (RAM.sh + RAM.gap) + RAM.sh / 2;
+  const y = sy + (k % 2 ? -3 : 3), port: Pt = [RAM.x - 11, y];
+  return [
+    { pts: b, key: 'u4', seed, inward: k % 4 === 2 },
+    { pts: turn(1), key: 'u5', seed: (seed + 3) % 10, inward: k % 4 === 0 },
+    { pts: turn(3), key: 'u3', seed: (seed + 6) % 10, inward: k % 4 === 2 },
+    { pts: [...r, [last[0], y - 6], [last[0] + 6, y], port] as Pt[], key: STICK[stick], seed: (seed + 8) % 10, inward: k % 4 === 0 },
+  ].map((l) => ({ ...l, k, quiet }));
+});
+
+// ---- the narrow board: U1 on top, the parts stacked below, one bus down the left edge ----
+const pin = (k: number) => 92 - 60 + 16 + k * (88 / 7);
+const NR = { x: 46, y: 566, w: 300, sh: 28, gap: 6 };
+const tourLabel = (k: string) => details.find((d) => d.key === k)!.title;
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="overview" resumeUrl="#">
-  <Stage>
-    <Intro heading="LEE-5Y" />
+<Base title={`${profile.name} · ${profile.role} (${profile.partNumber})`} glowAt="64% 52%" current="overview" resumeUrl={profile.resumeUrl}
+      description={`${profile.name}, a ${profile.role.toLowerCase()} in ${profile.city} (${profile.coreStack.slice(0, 3).join(', ')}), drawn as a motherboard: every part is a section, and every part connects only to the CPU.`}>
+  <Stage introWidth="27rem">
+    <Intro heading={profile.partNumber} role={profile.headline} lede={profile.summary}>
+      <p class="status"><i aria-hidden="true"></i>Status: {profile.status.active ? 'Active' : 'Away'} <span>{profile.status.text}</span></p>
+      <ul class="quick">
+        <li>{profile.years} years building backend systems</li>
+        <li>Core stack: {profile.coreStack.join(', ')}</li>
+        <li>{profile.location} · {profile.workMode}</li>
+      </ul>
+      <div class="actions">
+        <a class="btn solid" href={profile.resumeUrl} target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+        <a class="btn" href="/contact">Email Lee</a>
+      </div>
+      <p class="hint">Every part connects only to the CPU. Hover a part to read it; click to open its page.</p>
+    </Intro>
+    <Figure label={`The whole board: ${profile.name}'s CPU in the centre, wired to RAM for skills, an SSD for experience, a graphics card for projects and a network card for contact.`}
+            wide={[1000, 740]} narrow={[360, 1010]}>
+      <Fragment slot="wide">
+        {buses.map((l) => <>
+          {l.quiet ? <Trace points={l.pts} /> : <Trace points={l.pts} blip={{ seed: l.seed, inward: l.inward }} />}
+          <Net points={l.pts} keys={`${l.key} u1`} square lane={l.k} class="over" />
+        </>)}
+        <BoardGpu x={94} y={40} w={340} h={160} projects={projectNames} label="U4, graphics card: Projects. Opens page 5." lead={{ from: [180, 204], dir: 'd' }} />
+        <BoardNic x={670} y={117.5} w={316} h={150} label="U5, network card: Contact by email. Opens page 6." lead={{ from: [800, 272], dir: 'd' }} />
+        <BoardSsd x={10} y={510.5} w={320} h={74} roles={roles} label="U3, SSD: Experience. Roles, oldest to newest. Opens page 4." lead={{ from: [180, 506], dir: 'u' }} />
+        <BoardRam {...RAM} sticks={sticks} leadLen={10} />
+        <BoardCpu cx={C[0]} cy={C[1]} s={S} n={N} label={`U1, CPU: About me. ${profile.name}, ${profile.role}. Opens page 2.`} lead={{ from: [C[0] - 60, CT - 2], dir: 'u' }} />
+        <Tag x={94} y={26} des="U4" name="Projects" />
+        <Tag x={986} y={104} des="U5" name="Contact" anchor="end" />
+        <Tag x={10} y={614} des="U3" name="Experience" />
+        <Tag x={986} y={730} des="U2" name="Skills" anchor="end" />
+        <Tag x={CR + 14} y={290} des="U1" name="About me" />
+        <text x={CR + 14} y="307" font-size="12.5" class="num">the CPU: every part</text>
+        <text x={CR + 14} y="322" font-size="12.5" class="num">connects only here</text>
+      </Fragment>
+      <Fragment slot="narrow">
+        <Net points={[[112, pin(5)], [27, pin(5)], [27, 366], [180, 366], [180, 362]]} keys="u4 u1" r={6} />
+        <Net points={[[112, pin(4)], [17, pin(4)], [17, 458], [18, 458]]} keys="u5 u1" r={6} />
+        {STICK.map((key, i) => <Net points={[[112, pin(3)], [12, pin(3)], [12, NR.y + i * (NR.sh + NR.gap) + NR.sh / 2], [NR.x - 11, NR.y + i * (NR.sh + NR.gap) + NR.sh / 2]]} keys={`${key} u1`} r={6} />)}
+        <Net points={[[112, pin(2)], [7, pin(2)], [7, 765], [26, 765]]} keys="u3 u1" r={6} />
+        <BoardCpu cx={180} cy={92} s={120} n={8} label={`U1, CPU: About me. ${profile.name}, ${profile.role}. Opens page 2.`} lead={{ from: [180, 160], dir: 'd', len: 14 }} />
+        <Tag x={180} y={192} des="U1" name="About me" anchor="middle" />
+        <BoardGpu x={44} y={220} w={300} h={128} projects={projectNames} label="U4, graphics card: Projects. Opens page 5." lead={{ from: [194, 214], dir: 'u', len: 14 }} />
+        <Tag x={344} y={384} des="U4" name="Projects" anchor="end" />
+        <BoardNic x={32} y={404} w={300} h={108} label="U5, network card: Contact by email. Opens page 6." lead={{ from: [182, 398], dir: 'u', len: 14 }} />
+        <Tag x={32} y={540} des="U5" name="Contact" />
+        <BoardRam {...NR} sticks={sticks} leadLen={8} />
+        <Tag x={46} y={712} des="U2" name="Skills" />
+        <BoardSsd x={40} y={738} w={292} h={54} flip roles={roles} label="U3, SSD: Experience. Roles, oldest to newest. Opens page 4." lead={{ from: [186, 732], dir: 'u', len: 14 }} />
+        <Tag x={40} y={812} des="U3" name="Experience" />
+      </Fragment>
+      <Details items={details} label="Board parts" />
+    </Figure>
   </Stage>
 </Base>
+
+<style>
+  .status { display: inline-flex; align-items: center; gap: 10px; margin: 22px 0 0; padding: 8px 12px; border: 1px solid var(--rule);
+    font: 600 14px/1.3 var(--font); color: var(--ink); }
+  .status i { width: 9px; height: 9px; background: var(--ok); flex: none; animation: en 2.4s ease-in-out infinite; }
+  .status span { color: var(--ink-2); font-weight: 500; }
+  @keyframes en { 50% { opacity: .25; } }
+  @media (min-width: 900px) { .intro :global(.role) { max-width: 26ch; } }
+  @media (prefers-reduced-motion: reduce) { .status i { animation: none; } }
+</style>

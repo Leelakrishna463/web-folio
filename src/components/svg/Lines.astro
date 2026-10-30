@@ -1,0 +1,13 @@
+---
+// Centred lines of lettering, top to bottom: each row is [text, size, class?, extra space after?]. Port of ds.js lines().
+type Row = [string, number, string?, number?];
+interface Props { x: number; y: number; rows: Row[]; lh?: number; anchor?: 'start' | 'middle' | 'end' }
+const { x, y, rows, lh = 1.3, anchor = 'middle' } = Astro.props;
+let yy = y;
+const placed = rows.map(([t, size, cls = 'lt', after = 0]) => {
+  const at = yy + size * 0.35;
+  yy += size * lh + after;
+  return { t, size, cls, at };
+});
+---
+{placed.map((r) => <text x={x} y={r.at} font-size={r.size} text-anchor={anchor} class={r.cls}>{r.t}</text>)}

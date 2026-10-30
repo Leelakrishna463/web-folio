@@ -1,0 +1,33 @@
+---
+// U4 on the Overview: a graphics card, the GPU rendering each project into its own memory chip; its keyed PCIe edge
+// sits in the slot its bus leaves from
+import Probe from '../../svg/Probe.astro';
+import Chip from '../../svg/Chip.astro';
+import EdgeConnector from '../../svg/EdgeConnector.astro';
+import Socket from '../../svg/Socket.astro';
+import { d } from '../../../lib/geom/path';
+import type { Pt } from '../../../lib/geom/path';
+interface Props { x: number; y: number; w: number; h: number; projects: string[]; label: string; lead: { from: Pt; dir: 'u' | 'd' | 'l' | 'r'; len?: number } }
+const { x, y, w, h, projects, label, lead } = Astro.props;
+const fx0 = x + w * 0.38, fx1 = x + w - 12;
+const ds = Math.min(h - 46, 100), dx = x + 22, dy = y + (h - ds) / 2;
+const vx = dx + ds + 30, vw = x + w - 14 - vx, vh = (h - 24 - 12) / 3;
+const chips = projects.map((name, i) => {
+  const vy = y + 12 + i * (vh + 6);
+  // out from the GPU, across the gap and into the chip; every corner cut at 45°
+  const y0 = dy + ds / 2 + (i - 1) * 14, y1 = vy + vh / 2, x0 = dx + ds + 4, xm = (x0 + vx) / 2, sg = Math.sign(y1 - y0), c = Math.min(5, Math.abs(y1 - y0) / 2);
+  const path: Pt[] = sg ? [[x0, y0], [xm - c, y0], [xm, y0 + sg * c], [xm, y1 - sg * c], [xm + c, y1], [vx, y1]] : [[x0, y0], [vx, y1]];
+  return { name, vy, path };
+});
+---
+<Probe key="u4" label={label} href="/projects" lead={lead}>
+  <rect x={x - 12} y={y - 8} width="12" height={h + 16} class="paper" />
+  <rect x={x} y={y} width={w} height={h} class="paper pcb" />
+  <EdgeConnector x={fx0} y={y + h} len={fx1 - fx0} d={8} side="b" key={22} pitch={5} snug />
+  <Socket x={fx0 - 4} y={y + h + 6} w={fx1 - fx0 + 8} h={8} />
+  <Chip x={dx} y={dy} w={ds} h={ds} pins="tblr" pitch={7} len={4} label="GPU" labelMax={20} />
+  {chips.map((c) => <>
+    <Chip x={vx} y={c.vy} w={vw} h={vh} mark={false} label={c.name} labelMax={13} />
+    <path d={d(c.path)} class="thin" />
+  </>)}
+</Probe>

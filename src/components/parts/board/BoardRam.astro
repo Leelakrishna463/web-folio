@@ -1,0 +1,30 @@
+---
+// U2 on the Overview: four RAM sticks, slot on the left, each its own part (u2a to u2d, top to bottom), each chip a
+// skill. Its sticks' ports (where their lanes land) come from ramPorts() in the page.
+import Probe from '../../svg/Probe.astro';
+import EdgeConnector from '../../svg/EdgeConnector.astro';
+import Socket from '../../svg/Socket.astro';
+interface Stick { key: string; label: string; short: string; chips: (string | null)[] }
+interface Props { x: number; y: number; w: number; sh: number; gap: number; sticks: Stick[]; leadLen: number }
+const { x, y, w, sh, gap, sticks, leadLen } = Astro.props;
+const cw = (w - 72) / 3;
+---
+{sticks.map((st, i) => {
+  const sy = y + i * (sh + gap);
+  return (
+    <Probe key={st.key} label={st.label} href="/skills" lead={{ from: [x + w, sy + sh / 2], dir: 'r', len: leadLen }}>
+      <rect x={x} y={sy} width={w} height={sh} class="paper pcb" />
+      <EdgeConnector x={x} y={sy + 5} len={sh - 10} d={6} side="l" pitch={4} />
+      <Socket x={x - 11} y={sy - 2} w={6.5} h={sh + 4} />
+      {st.chips.map((name, c) => {
+        const cx = x + 10 + c * (cw + 4);
+        return name
+          ? <><rect x={cx} y={sy + 5} width={cw} height={sh - 10} class="body" />
+              <text x={cx + cw / 2} y={sy + sh / 2} font-size={Math.min(12, (cw - 8) / (name.length * 0.64))} text-anchor="middle" dominant-baseline="central" class="lt">{name}</text></>
+          : <><rect x={cx} y={sy + 5} width={cw} height={sh - 10} class="dash" />
+              <text x={cx + cw / 2} y={sy + sh / 2} font-size="11" text-anchor="middle" dominant-baseline="central" class="num">FREE</text></>;
+      })}
+      <text x={x + w - 28} y={sy + sh / 2} font-size="10.5" text-anchor="middle" dominant-baseline="central" class="mk">{st.short}</text>
+    </Probe>
+  );
+})}
