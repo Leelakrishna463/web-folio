@@ -9,11 +9,11 @@ const SVG = 'http://www.w3.org/2000/svg';
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
 let placeMod: Promise<typeof import('../lib/geom/place')> | null = null;
 
-/** Everything in the drawing that carries information, as boxes in drawing units. Traces and the blurred board don't count. */
+/** Everything in the drawing that carries information, as boxes in drawing units. Traces, stubs and the blurred board don't count. */
 function obstacles(svg: SVGSVGElement, toUnits: (r: DOMRect) => Rect): Rect[] {
   const out: Rect[] = [];
   svg.querySelectorAll('text, rect, circle, path.pin, path.paper, path.gold, path.tab, path.body').forEach((el) => {
-    if (el.closest('.brd')) return;
+    if (el.closest('.brd') || el.classList.contains('stub')) return;   // the blurred board and bare pin stubs carry no information
     const r = el.getBoundingClientRect();
     if (r.width || r.height) out.push(toUnits(r));
   });

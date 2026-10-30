@@ -1,0 +1,46 @@
+---
+// A RAM stick in front view, seated in its slot: three chip sites, each a skill lit by its load (or the dashed free
+// socket), the group label at its right end (wide) or above it (narrow), and a keyed edge connector of gold fingers.
+// Port of design/lee-ram.html dimm()/chip().
+import Chip from '../svg/Chip.astro';
+import Probe from '../svg/Probe.astro';
+import Lines from '../svg/Lines.astro';
+import EdgeConnector from '../svg/EdgeConnector.astro';
+import Socket from '../svg/Socket.astro';
+import type { Skills } from '../../lib/schema';
+
+type Module = Skills['modules'][number];
+interface Props { module: Module; index: number; x: number; y: number; w: number; h: number; big: boolean; loadNames: Record<1 | 2 | 3, string>; next: string }
+const { module: m, index, x, y, w, h, big, loadNames, next } = Astro.props;
+const notch = x + w * 0.44, fy = y + h, td = big ? 20 : 11;
+const outline = `M${x} ${y}H${x + w}V${y + h * 0.42}h-5v10h5V${fy}H${x}V${y + h * 0.42 + 10}h5v-10h-5Z`;
+const pad = big ? 18 : 8, labW = big ? 150 : 0, gap = big ? 14 : 6;
+const cw = (w - pad * 2 - labW - gap * 2 - (big ? 12 : 0)) / 3, ch = h - (big ? 44 : 40), sz = big ? 8 : 7;
+const group = m.group.toUpperCase(), slot = `DIMM_${m.id}`;
+// every lead starts upward, into open board (a downward lead on the top stick would end boxed in by the gold fingers)
+const down = false, lead = { side: 't' as const, len: big ? 24 : 16 };
+const sites = m.chips.map((c, ci) => ({
+  c, key: `c${index}${ci}`, x: x + pad + ci * (cw + gap),
+  label: c ? `${c.name}, ${m.group}: ${loadNames[c.load]}.${c.note ? ` ${c.note}` : ''}` : `Free socket. Next in the pipeline: ${next}`,
+}));
+---
+<path d={outline} class="paper pcb" />
+<EdgeConnector x={x + 14} y={fy} len={w - 28} d={td} side="b" key={notch - x - 14} pitch={big ? 8 : 5} snug />
+<Socket x={x + 4} y={fy + td - (big ? 8 : 4)} w={w + (big ? 14 : 6)} h={big ? 16 : 10} />
+{big && <Socket x={x + w + 10} y={fy + 9} w={8} h={30} />}
+{sites.map((s) => s.c ? (
+  <Chip x={s.x} y={y + 14} w={cw} h={ch} pins="tb" pitch={7} len={3} lit={s.c.load} label={s.c.name.toUpperCase()}
+        labelMax={big ? 18 : 13} labelY={y + 14 + ch * 0.42} probe={{ key: s.key, label: s.label, lead }}>
+    {[0, 1, 2].map((i) => <rect x={s.x + cw / 2 - (3 * sz + 6) / 2 + i * (sz + 3)} y={y + 14 + ch * 0.66} width={sz} height={sz} class={i < s.c!.load ? 'ink in' : 'thin in'} />)}
+  </Chip>
+) : (
+  <Probe key={s.key} label={s.label} class="l0"
+         lead={{ from: [s.x + cw / 2, down ? y + 14 + ch + 3 : y + 11], dir: down ? 'd' : 'u', len: lead.len }}>
+    <rect x={s.x} y={y + 14} width={cw} height={ch} class="fill" />
+    <rect x={s.x} y={y + 14} width={cw} height={ch} class="dash" />
+    <Lines x={s.x + cw / 2} y={y + 14 + ch / 2 - (big ? 9 : 7)} rows={[['FREE', big ? 13 : 11, 'lt'], ['NEXT SKILL', big ? 10 : 9, 'lab in']]} lh={1.5} />
+  </Probe>
+))}
+{big
+  ? <Lines x={x + w - pad - labW / 2} y={y + 14 + ch / 2 - 8} rows={[[group, 14, 'lt'], [`${slot} · 16 GB`, 10.5, 'num']]} lh={1.5} />
+  : <text x={x} y={y - 9} font-size="11" class="lt">{group} · {slot}</text>}

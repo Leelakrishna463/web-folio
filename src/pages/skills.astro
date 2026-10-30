@@ -1,10 +1,74 @@
 ---
+// Skills: four RAM sticks, one skill group each, every chip a skill lit by how often it is used. Port of
+// design/lee-ram.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Ghost from '../components/svg/Ghost.astro';
+import Trace from '../components/svg/Trace.astro';
+import Dimm from '../components/parts/Dimm.astro';
+import { getResource } from '../lib/api';
+import type { Detail } from '../lib/detail';
+
+const [profile, skills] = await Promise.all([getResource('profile'), getResource('skills')]);
+const loadNames = skills.loadLegend as Record<1 | 2 | 3, string>;
+const details: Detail[] = skills.modules.flatMap((m, gi) => m.chips.map((c, ci) => c
+  ? { key: `c${gi}${ci}`, title: c.name.toUpperCase(), tag: m.group.toUpperCase(),
+      rows: [{ small: 'LOAD' }, { load: c.load, text: `${loadNames[c.load]}.` }, ...(c.note ? [{ text: c.note }] : [])] }
+  : { key: `c${gi}${ci}`, title: 'FREE SOCKET', tag: m.group.toUpperCase(), rows: [{ text: 'Next in the pipeline:' }, { text: skills.next }] }));
+
+// wide: the sticks stacked, each slot's six bus lanes running straight right into the CPU's pins
+const WIDE = { x: 20, w: 700, h: 118, at: (i: number) => 80 + i * 164 };
+const port = (i: number) => [WIDE.x + WIDE.w + 18, WIDE.at(i) + WIDE.h + 24] as const;
+const lanes = skills.modules.flatMap((_, gi) => [0, 1, 2, 3, 4, 5].map((b) => {
+  const [sx, sy] = port(gi), y = sy + (b - 2.5) * 5;
+  return { pts: [[sx, y], [840, y]] as [number, number][], seed: (gi * 3 + b * 7) % 10, inward: b % 2 === 1, y };
+}));
+const NARROW = { x: 10, w: 300, h: 104, at: (i: number) => 40 + i * 158 };
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="skills" resumeUrl="#">
+<Base title={`${profile.name}'s skills · ${profile.partNumber} memory organization`} glowAt="58% 52%" current="skills" resumeUrl={profile.resumeUrl}
+      description={`${profile.name}'s skills, drawn as four memory modules: every chip is a skill.`}>
   <Stage>
-    <Intro heading="Skills" />
+    <Intro heading="Skills" role={`Strongest: ${skills.strongest.join(', ')}`}
+           lede="What's loaded in memory. Four modules, one skill group each, and every chip is a skill.">
+      <ul class="legend" aria-label="Load marking">
+        {([3, 2, 1] as const).map((n) => (
+          <li><span class="sq" aria-hidden="true">{[1, 2, 3].map((i) => <i class={i <= n ? 'f' : undefined} />)}</span>{loadNames[n]}</li>
+        ))}
+      </ul>
+      <p class="next"><b>Next in the pipeline</b>{skills.next}</p>
+      <p class="hint">Hover, tab or tap a chip to read it.</p>
+    </Intro>
+    <Figure label={`Four memory modules in their slots, wired to ${profile.name}'s CPU. Each chip is lettered with a skill and its load.`}
+            wide={[1000, 740]} narrow={[360, 660]} tour={details.map((d) => d.key)}>
+      <Fragment slot="wide">
+        <Ghost kind="cpu" x={850} y={110} w={600} h={600} />
+        <Ghost kind="nic" x={870} y={-20} w={260} h={112} />
+        <Ghost kind="gpu" x={870} y={712} w={280} h={200} />
+        <Ghost kind="ssd" x={200} y={712} w={260} h={62} />
+        {lanes.map((l) => <>
+          <Trace points={l.pts} blip={{ seed: l.seed, inward: l.inward }} />
+          <path d={`M840 ${l.y}h12`} class="pin stub" />
+        </>)}
+        {skills.modules.map((m, i) => <Dimm module={m} index={i} x={WIDE.x} y={WIDE.at(i)} w={WIDE.w} h={WIDE.h} big loadNames={loadNames} next={skills.next} />)}
+      </Fragment>
+      <Fragment slot="narrow">
+        {skills.modules.map((_, i) => [0, 1, 2].map((j) => {
+          const y = NARROW.at(i) + NARROW.h + 14 - 3 + j * 3;
+          return <path d={`M${NARROW.x + NARROW.w + 10} ${y}h40`} class="trace" />;
+        }))}
+        {skills.modules.map((m, i) => <Dimm module={m} index={i} x={NARROW.x} y={NARROW.at(i)} w={NARROW.w} h={NARROW.h} big={false} loadNames={loadNames} next={skills.next} />)}
+      </Fragment>
+      <Details items={details} label="Skills" />
+    </Figure>
   </Stage>
 </Base>
+
+<style>
+  .legend { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 8px; font: 500 15px/1.4 var(--font); color: var(--ink-2); }
+  .legend li { display: flex; align-items: center; gap: 12px; }
+  .next { margin: 22px 0 0; font: 500 15px/1.45 var(--font); color: var(--ink-2); }
+  .next b { display: block; font-weight: 600; color: var(--ink); }
+</style>
