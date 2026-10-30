@@ -1,0 +1,7 @@
+{
+  "roles": [
+    { "id": "r1", "kind": "NAND", "company": "[Company]", "title": "[Backend Developer]", "from": "[2019]", "to": "[2021]", "impact": "[What you shipped and the result, e.g. built X, cutting Y by Z%]" },
+    { "id": "r2", "kind": "NAND", "company": "[Company]", "title": "[Software Engineer]", "from": "[2021]", "to": "[2023]", "impact": "[Built a feature or migration with a measurable result]" },
+    { "id": "r3", "kind": "CTRL", "company": "[Company]", "title": "[Senior Software Engineer]", "from": "[2023]", "to": null, "impact": "[Led X: cut p95 latency of Y API from 800 ms to 120 ms]" }
+  ]
+}

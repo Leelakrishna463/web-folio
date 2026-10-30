@@ -1,0 +1,17 @@
+{
+  "name": "Lee",
+  "partNumber": "LEE-5Y",
+  "role": "Senior Backend Engineer",
+  "headline": "Senior backend engineer with Python, Django and PostgreSQL",
+  "summary": "I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.",
+  "location": "Bengaluru, India",
+  "city": "Bengaluru",
+  "workMode": "[on-site or remote]",
+  "years": "~5",
+  "timezone": "IST (UTC+5:30)",
+  "status": { "active": true, "text": "Open to senior backend roles" },
+  "coreStack": ["Python", "Django", "PostgreSQL", "Redis"],
+  "email": "[you@example.com]",
+  "resumeUrl": "#",
+  "replyTime": "[24 hours]"
+}

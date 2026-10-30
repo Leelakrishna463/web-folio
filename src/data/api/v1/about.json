@@ -1,0 +1,11 @@
+{
+  "pins": [
+    { "id": "python", "label": "PYTHON", "type": "I/O", "lines": ["Core language.", "Daily driver, with Django."] },
+    { "id": "postgresql", "label": "POSTGRESQL", "type": "I/O", "lines": ["Main database.", "Daily driver, with Redis."] },
+    { "id": "apis", "label": "APIS", "type": "Output", "lines": ["I build the APIs, data models and background jobs behind products."] },
+    { "id": "email", "label": "EMAIL", "type": "I/O", "lines": ["One channel: email."], "action": { "text": "Click to open contact", "href": "/contact" } },
+    { "id": "resume", "label": "RÉSUMÉ", "type": "Output", "lines": ["Résumé as a PDF."], "action": { "text": "Click to download", "href": "#" } },
+    { "id": "years", "label": "~5 YEARS", "type": "Clock", "lines": ["~5 years in backend engineering."] },
+    { "id": "timezone", "label": "IST UTC+5:30", "type": "Clock", "lines": ["India Standard Time, UTC+5:30."] }
+  ]
+}

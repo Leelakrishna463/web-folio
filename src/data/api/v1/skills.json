@@ -1,0 +1,23 @@
+{
+  "strongest": ["Python", "Django", "PostgreSQL"],
+  "next": "[What I'm learning now]",
+  "loadLegend": { "3": "Daily driver", "2": "Comfortable", "1": "Working knowledge" },
+  "modules": [
+    { "id": "A1", "group": "Languages", "short": "LANG", "chips": [
+      { "name": "Python", "load": 3, "note": "Core language." },
+      { "name": "SQL", "load": 3 },
+      { "name": "C++", "load": 2 } ] },
+    { "id": "A2", "group": "Frameworks", "short": "FRMWK", "chips": [
+      { "name": "Django", "load": 3, "note": "Main web framework." },
+      { "name": "DRF", "load": 3 },
+      { "name": "Celery", "load": 2 } ] },
+    { "id": "B1", "group": "Data", "short": "DATA", "chips": [
+      { "name": "PostgreSQL", "load": 3, "note": "Main database." },
+      { "name": "Redis", "load": 2, "note": "Part of the core stack." },
+      null ] },
+    { "id": "B2", "group": "Infra", "short": "INFRA", "chips": [
+      { "name": "[AWS]", "load": 2 },
+      { "name": "[Docker]", "load": 2 },
+      { "name": "[Nginx]", "load": 2 } ] }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "projects": [
+    { "id": "p1", "name": "[project-one]", "stack": ["Django", "Celery", "Redis"], "problem": "[Slow checkout API]", "fix": "[Moved fan-out to Celery + Redis]", "result": "[Impact metric]" },
+    { "id": "p2", "name": "[project-two]", "stack": ["PostgreSQL", "DRF"], "problem": "[What was broken]", "fix": "[What you changed]", "result": "[Impact metric]" },
+    { "id": "p3", "name": "[project-three]", "stack": ["[AWS]", "[Docker]"], "problem": "[What was broken]", "fix": "[What you changed]", "result": "[Impact metric]" }
+  ]
+}
