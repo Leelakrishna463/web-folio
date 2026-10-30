@@ -1,0 +1,24 @@
+---
+// What every probe-able part says. Each item becomes a <template> the popup card (desktop) and the detail panel (phone)
+// fill from, plus a visually hidden list so screen readers and no-JS readers get every fact.
+import { rowView, plainText, type Detail } from '../../lib/detail';
+interface Props { items: Detail[]; label: string }
+const { items, label } = Astro.props;
+const views = items.map((it) => ({ ...it, rows: it.rows.map(rowView) }));
+---
+{views.map((it) => (
+  <template data-detail={it.key}>
+    <div class="dt-hd"><b>{it.title}</b>{it.tag && <span>{it.tag}</span>}</div>
+    <div class="dt-bd">
+      {it.rows.map((r) => (
+        <p class={r.cls}>
+          {r.load && <span class="sq" aria-hidden="true">{[1, 2, 3].map((n) => <i class={n <= r.load! ? 'f' : undefined} />)}</span>}
+          {r.text}
+        </p>
+      ))}
+    </div>
+  </template>
+))}
+<ul class="sr" aria-label={label}>
+  {items.map((it) => <li>{plainText(it)}</li>)}
+</ul>

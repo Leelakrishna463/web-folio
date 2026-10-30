@@ -1,0 +1,39 @@
+---
+// A small drawing that exercises the interaction runtime (probe, card, panel, tour, blips). Served at /fixture only
+// when LEE_FIXTURES=1 (Playwright's build); never in production.
+import Base from '../../src/components/layout/Base.astro';
+import Stage from '../../src/components/layout/Stage.astro';
+import Intro from '../../src/components/layout/Intro.astro';
+import Figure from '../../src/components/svg/Figure.astro';
+import Chip from '../../src/components/svg/Chip.astro';
+import Net from '../../src/components/svg/Net.astro';
+import Trace from '../../src/components/svg/Trace.astro';
+import Details from '../../src/components/layout/Details.astro';
+
+const items = [
+  { key: 'alpha', title: 'ALPHA PART', tag: 'U1', rows: [{ small: 'FIRST' }, { text: 'First line about alpha.' }] },
+  { key: 'beta', title: 'BETA PART', tag: 'U2', rows: [{ load: 3 as const, text: 'Daily driver.' }, { text: 'Second line about beta.' }] },
+  { key: 'gamma', title: 'GAMMA LINK', tag: 'U3', rows: [{ text: 'A part that links.' }, { act: 'Click to open' }] },
+];
+---
+<Base title="Fixture" description="Interaction fixture" current="overview" resumeUrl="#">
+  <Stage>
+    <Intro heading="Fixture" lede="Interaction test page." />
+    <Figure label="Fixture board" wide={[1000, 700]} narrow={[360, 520]} tour={['alpha', 'beta', 'gamma']}>
+      <Fragment slot="wide">
+        <Net points={[[200, 140], [600, 140]]} keys="alpha" />
+        <Net points={[[200, 340], [600, 340]]} keys="beta" />
+        <Trace points={[[40, 600], [900, 600]]} blip={{ seed: 2 }} />
+        <Chip x={80} y={100} w={160} h={80} pins="tb" label="ALPHA" probe={{ key: 'alpha', label: 'Alpha part' }} />
+        <Chip x={80} y={300} w={160} h={80} pins="tb" label="BETA" probe={{ key: 'beta', label: 'Beta part' }} />
+        <Chip x={600} y={300} w={160} h={80} pins="tb" label="GAMMA" probe={{ key: 'gamma', label: 'Gamma link', href: '/about' }} />
+      </Fragment>
+      <Fragment slot="narrow">
+        <Chip x={40} y={30} w={280} h={90} label="ALPHA" probe={{ key: 'alpha', label: 'Alpha part' }} />
+        <Chip x={40} y={170} w={280} h={90} label="BETA" probe={{ key: 'beta', label: 'Beta part' }} />
+        <Chip x={40} y={310} w={280} h={90} label="GAMMA" probe={{ key: 'gamma', label: 'Gamma link', href: '/about' }} />
+      </Fragment>
+      <Details items={items} label="Fixture parts" />
+    </Figure>
+  </Stage>
+</Base>

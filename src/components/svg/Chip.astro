@@ -3,7 +3,9 @@
 // reader can hover, focus or tap. Extra lettering goes in the default slot.
 import Pins from './Pins.astro';
 
-interface Probe { key: string; label: string; href?: string }
+/** a probe-able part: key names it (nets with this key light with it); lead is the line that shoots out of its edge
+ *  when probed, and its tip is where a popup's cord starts (default: 12 units out of the right edge) */
+interface Probe { key: string; label: string; href?: string; lead?: { side: 't' | 'b' | 'l' | 'r'; len?: number } }
 interface Props {
   x: number; y: number; w: number; h: number;
   /** which edges carry pins, e.g. 'tb' or 'tblr' */
@@ -28,9 +30,15 @@ const rows = (pins.split('') as Side[]).map((s) => {
     : { side: s, x: s === 'l' ? x : x + w, y: y + start, n };
 });
 const classes = [probe ? 'pr' : '', lit ? `l${lit}` : '', cls].filter(Boolean).join(' ') || undefined;
+// the lead: from the middle of one edge, straight out
+const side = probe?.lead?.side ?? 'r', L = probe?.lead?.len ?? 12;
+const from = side === 't' ? [x + w / 2, y - 2] : side === 'b' ? [x + w / 2, y + h + 2] : side === 'l' ? [x - 2, y + h / 2] : [x + w + 2, y + h / 2];
+const step = side === 't' ? [0, -L] : side === 'b' ? [0, L] : side === 'l' ? [-L, 0] : [L, 0];
+const tip = [from[0] + step[0], from[1] + step[1]];
 ---
-<g class={classes} data-key={probe?.key} data-href={probe?.href} tabindex={probe ? 0 : undefined}
-   role={probe ? (probe.href ? 'link' : 'button') : undefined} aria-label={probe?.label}>
+<g class={classes} data-key={probe?.key} data-href={probe?.href} data-tip={probe ? `${tip[0]},${tip[1]}` : undefined}
+   tabindex={probe ? 0 : undefined} role={probe ? (probe.href ? 'link' : 'button') : undefined} aria-label={probe?.label}>
+  {probe && <path d={`M${from[0]} ${from[1]}l${step[0]} ${step[1]}`} class="ext" stroke-dasharray={L} stroke-dashoffset={L} />}
   {rows.map((r) => <Pins side={r.side} x={r.x} y={r.y} n={r.n} pitch={pitch} len={len} />)}
   <rect x={x} y={y} width={w} height={h} class={paper ? 'paper' : 'body'} />
   {mark && <circle cx={x + 7} cy={y + 7} r="2.2" class="ink in" />}

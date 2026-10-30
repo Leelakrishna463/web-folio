@@ -2,8 +2,11 @@
 // Every page: head, font preload, header, page transitions, the stage
 import { ClientRouter } from 'astro:transitions';
 import Header, { type Section } from './Header.astro';
+import DetailPanel from './DetailPanel.astro';
 import '../../styles/tokens.css';
 import '../../styles/base.css';
+import '../../styles/board.css';
+import '../../styles/detail.css';
 
 interface Props {
   title: string;
@@ -32,5 +35,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 <body>
   <Header current={current} resumeUrl={resumeUrl} />
   <slot />
+  <DetailPanel />
+  <p class="sr" aria-live="polite" data-live></p>
+  <script>import '../../scripts/figure';</script>
 </body>
 </html>

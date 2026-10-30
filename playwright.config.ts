@@ -13,5 +13,6 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'], ...browser, viewport: { width: 1440, height: 900 } } },
     { name: 'phone', use: { ...devices['Pixel 7'], ...browser } },
   ],
-  webServer: { command: 'npm run preview', url: 'http://localhost:4321', reuseExistingServer: !process.env.CI, timeout: 60_000 },
+  // builds with the test fixtures included, then serves the build
+  webServer: { command: 'npm run build && npm run preview', env: { LEE_FIXTURES: '1' }, url: 'http://localhost:4321', reuseExistingServer: !process.env.CI, timeout: 180_000 },
 });
