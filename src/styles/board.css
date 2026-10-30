@@ -62,7 +62,7 @@ svg .lit .lt, svg .lit .mk, svg .lit text.in, svg .lit .lab.in, svg .lit .ink.in
 svg .lit .thin.in { stroke: var(--ground); }
 
 /* ---- probe-able parts: a probed part lifts with a glow and keeps its own colours ---- */
-svg .pr { cursor: pointer; outline: none; transition: filter .2s ease-out; }
+svg .pr { cursor: pointer; outline: none; transition: filter .2s ease-out; pointer-events: bounding-box; }   /* the whole part is the target, gaps included */
 svg .pr.on { filter: var(--glow); }
 svg .pr:focus-visible { filter: var(--glow); }
 svg .pr:focus-visible .body, svg .pr:focus-visible .paper { stroke: var(--red); stroke-width: 2; }
@@ -95,3 +95,7 @@ svg .brd:hover, svg .brd:focus-visible { opacity: .9; filter: none; outline: non
   svg .trace { stroke-dashoffset: 0; }
   svg .blip { display: none; }
 }
+
+/* ---- a fact pin's socket: ---() ---- */
+svg .sock { fill: var(--ground); stroke: var(--ink); stroke-width: 1.6; transition: fill .15s ease-out; }
+svg .pr.on .sock { fill: var(--red); stroke: var(--red); }

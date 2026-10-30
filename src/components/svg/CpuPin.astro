@@ -1,0 +1,48 @@
+---
+// One package pin: its lead, the inner lead-frame finger (stopping short of the die), and its number. A fact pin is a
+// probe-able part: it can run on out to a socket (---()), and carries a name tag. A bare pin can carry a trace out to the
+// rest of the board. Port of design/lee-cpu.html pin().
+import Probe from './Probe.astro';
+import Trace from './Trace.astro';
+import type { Pt } from '../../lib/geom/path';
+
+type Side = 'l' | 'r' | 't' | 'b';
+interface Props {
+  side: Side; x: number; y: number;
+  /** lead length outside the package, and finger depth inside it */
+  len: number; depth: number;
+  num: number;
+  /** a fact pin */
+  fact?: { key: string; name: string; label: string; href?: string; size: number; run?: number; ext: number };
+  /** a bare pin's trace, from the lead's end */
+  trace?: { to: Pt[]; seed: number; inward?: boolean; via?: boolean };
+}
+const { side, x, y, len, depth, num, fact, trace } = Astro.props;
+const ox = side === 'l' ? -1 : side === 'r' ? 1 : 0, oy = side === 't' ? -1 : side === 'b' ? 1 : 0;
+const ex = x + ox * len, ey = y + oy * len, fx = x - ox * depth, fy = y - oy * depth;
+const numAt: Pt = [x - ox * 14 + (oy ? 9 : 0), y - oy * 14 - (ox ? 9 : 0)];
+const run = fact?.run;
+const end: Pt = run != null ? [ex + ox * (run + 8), ey + oy * (run + 8)] : [ex, ey];
+const lx = end[0] + ox * 8, ly = end[1] + oy * 8;
+const anchor = side === 'l' || side === 'b' ? 'end' : 'start';
+const dir = ({ l: 'l', r: 'r', t: 'u', b: 'd' } as const)[side];
+---
+{fact ? (
+  <Probe key={fact.key} label={fact.label} href={fact.href} lead={{ from: end, dir, len: fact.ext }}>
+    <path d={`M${ex} ${ey}L${fx} ${fy}`} class="pin" />
+    <text x={numAt[0]} y={numAt[1]} font-size="10.5" text-anchor="middle" dominant-baseline="central" class="num">{num}</text>
+    {run != null && <>
+      <path d={`M${ex} ${ey}l${ox * run} ${oy * run}`} class="pin" />
+      <circle cx={ex + ox * (run + 4)} cy={ey + oy * (run + 4)} r="4" class="sock" />
+    </>}
+    <text x={lx} y={ly} font-size={fact.size} text-anchor={anchor} dominant-baseline="central" class="lab out pintag"
+          transform={oy ? `rotate(-90 ${lx} ${ly})` : undefined}>{fact.name}</text>
+  </Probe>
+) : (
+  <g>
+    <path d={`M${ex} ${ey}L${fx} ${fy}`} class="pin" />
+    <text x={numAt[0]} y={numAt[1]} font-size="10.5" text-anchor="middle" dominant-baseline="central" class="num">{num}</text>
+    {trace && <Trace points={[[ex, ey], ...trace.to]} blip={{ seed: trace.seed, inward: trace.inward }} />}
+    {trace?.via && <circle cx={trace.to.at(-1)![0]} cy={trace.to.at(-1)![1]} r="3.5" class="via" />}
+  </g>
+)}

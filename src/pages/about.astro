@@ -1,10 +1,75 @@
 ---
+// About: Lee drawn as a CPU, decapped; each fact is a pin. Port of design/lee-cpu.html.
 import Base from '../components/layout/Base.astro';
 import Stage from '../components/layout/Stage.astro';
 import Intro from '../components/layout/Intro.astro';
+import Details from '../components/layout/Details.astro';
+import Figure from '../components/svg/Figure.astro';
+import Ghost from '../components/svg/Ghost.astro';
+import Cpu from '../components/parts/Cpu.astro';
+import { getResource } from '../lib/api';
+import type { Detail } from '../lib/detail';
+
+const [profile, about] = await Promise.all([getResource('profile'), getResource('about')]);
+
+// where each fact pin sits on the package: wide is a QFP-48 (12 a side), narrow a TSSOP-24 (12 down each side)
+type Side = 'l' | 'r' | 't' | 'b';
+const WIDE: Record<string, [Side, number]> = { python: ['l', 3], postgresql: ['l', 8], apis: ['b', 6], email: ['r', 2], resume: ['r', 6], years: ['r', 9], timezone: ['t', 4] };
+const NARROW: Record<string, [Side, number]> = { python: ['l', 2], postgresql: ['l', 5], apis: ['l', 8], email: ['r', 2], resume: ['r', 4], years: ['r', 7], timezone: ['r', 9] };
+// how far each fact pin runs out to its socket: lengths differ widely, so no two sockets line up
+const RUN: Record<string, number> = { python: 70, postgresql: 8, apis: 10, email: 64, resume: 6, years: 36, timezone: 20 };
+const pins = about.pins.map((p) => (p.id === 'resume' && p.action ? { ...p, action: { ...p.action, href: profile.resumeUrl } } : p));
+
+// pin numbers run anticlockwise from pin 1 at the top of the left side
+const numOf = (pos: [Side, number], perSide: Side[]) => perSide.indexOf(pos[0]) * 12 + pos[1] + 1;
+const details: Detail[] = pins
+  .map((p) => ({ p, num: numOf(WIDE[p.id], ['l', 'b', 'r', 't']) }))
+  .sort((a, b) => a.num - b.num)
+  .map(({ p, num }) => ({
+    key: p.id, title: p.label, tag: `PIN ${num}`,
+    rows: [{ small: p.type.toUpperCase() }, ...p.lines.map((text) => ({ text })), ...(p.action ? [{ act: p.action.text }] : [])],
+  }));
+const stack = profile.coreStack.slice(0, 3).map((s) => s.toUpperCase());
 ---
-<Base title="Lee · Senior Backend Engineer" description="Lee, a senior backend engineer in Bengaluru." current="about" resumeUrl="#">
+<Base title={`About ${profile.name} · ${profile.role}`} glowAt="64% 56%" current="about" resumeUrl={profile.resumeUrl}
+      description={`About ${profile.name}, a ${profile.role.toLowerCase()} in ${profile.city} (${profile.coreStack.slice(0, 3).join(', ')}), drawn as a CPU: hover a pin to read it.`}>
   <Stage>
-    <Intro heading="Lee" />
+    <Intro heading={profile.name} role={`${profile.role} · ${profile.city}`} lede={profile.summary}>
+      <ul class="quick">
+        <li>{profile.years} years in backend engineering</li>
+        <li>{profile.coreStack.join(' · ')}</li>
+        <li>{profile.status.text} · {profile.timezone}</li>
+      </ul>
+      <div class="actions">
+        <a class="btn solid" href="/contact">Email</a>
+        <a class="btn" href={profile.resumeUrl} target="_blank" rel="noopener">Résumé PDF</a>
+      </div>
+      <p class="hint">Hover, tab or tap a pin on the chip to read it.</p>
+    </Intro>
+    <Figure label={`${profile.name}'s CPU, decapped. The die is marked LEE, ${profile.role}, ${profile.coreStack.slice(0, 3).join(', ')}, ${profile.city}, open to senior backend roles. Each pin is a fact.`}
+            wide={[1000, 740]} narrow={[360, 600]} tour={details.map((d) => d.key)}>
+      <Fragment slot="wide">
+        <Ghost kind="ram" x={300} y={-74} w={400} h={66} />
+        <Ghost kind="ssd" x={330} y={690} w={260} h={62} />
+        <Ghost kind="gpu" x={870} y={190} w={280} h={330} />
+        <Ghost kind="nic" x={870} y={600} w={240} h={120} />
+        <Cpu mode="wide" pins={pins} at={WIDE} runs={RUN}
+             marking={[['LEE', 66, 'lt', -22], [profile.role.toUpperCase(), 14, 'lab', 6], [stack.join(' · '), 13, 'lab', 16], [`${profile.city.toUpperCase()} · OPEN TO ROLES`, 13, 'lt', 16], [`${profile.partNumber} · e3`, 11, 'num']]} />
+      </Fragment>
+      <Fragment slot="narrow">
+        <Cpu mode="narrow" pins={pins} at={NARROW}
+             marking={[['LEE', 40, 'lt', -12], ...profile.role.toUpperCase().split(' ').map((w, i, a) => [w, 12.5, 'lab', i === a.length - 1 ? 10 : 0] as [string, number, string, number]),
+                       ...stack.map((s, i) => [s, 12, 'lab', i === stack.length - 1 ? 10 : 0] as [string, number, string, number]),
+                       [profile.city.toUpperCase(), 12, 'lab'], ['OPEN TO ROLES', 12, 'lt', 10], [`${profile.partNumber} e3`, 11, 'num']]} />
+      </Fragment>
+      <Details items={details} label="Pins" />
+    </Figure>
   </Stage>
 </Base>
+
+<style>
+  /* a fact pin's name tag fades as its popup takes over */
+  :global(svg .pintag) { transition: opacity .15s ease-out; }
+  :global(svg .pr.on .pintag) { opacity: 0; }
+  @media (max-width: 640px), (pointer: coarse) { :global(svg .pr.on .pintag) { opacity: 1; } }
+</style>

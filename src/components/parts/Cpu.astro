@@ -1,0 +1,76 @@
+---
+// The About page's CPU, decapped: a QFP-48 package with a lit die etched with who Lee is (wide), or a TSSOP-24 standing
+// upright (narrow). Only the fact pins are probe-able; on the wide build every bare pin is wired out to the rest of the
+// board. Port of design/lee-cpu.html.
+import CpuPin from '../svg/CpuPin.astro';
+import Lines from '../svg/Lines.astro';
+import type { About } from '../../lib/schema';
+import type { Pt } from '../../lib/geom/path';
+
+type Side = 'l' | 'r' | 't' | 'b';
+type Row = [string, number, string?, number?];
+interface Props {
+  mode: 'wide' | 'narrow';
+  pins: About['pins'];
+  /** where each fact pin sits: side and index along that side */
+  at: Record<string, [Side, number]>;
+  /** wide only: how far each fact pin runs out to its socket */
+  runs?: Record<string, number>;
+  marking: Row[];
+}
+const { mode, pins, at, runs = {}, marking } = Astro.props;
+const byPos = new Map(pins.map((p) => [at[p.id].join(':'), p]));
+const label = (p: About['pins'][number], num: number) =>
+  `Pin ${num}, ${p.label}: ${p.lines.join(' ')}${p.action ? ` ${p.action.text}.` : ''}`;
+const markH = marking.reduce((a, r) => a + r[1] * 1.3 + (r[3] ?? 0), 0);
+
+interface PinSpec { side: Side; i: number; x: number; y: number }
+let pinsOut: PinSpec[] = [], geom: { pkg: [number, number, number, number]; cavity: [number, number, number, number]; die: [number, number, number, number]; dot: Pt; dotR: number; notch?: string };
+let len: number, depth: number, ext: number, extTB: number, size: number, sizeTB: number;
+let route: ((side: Side, i: number, e: Pt) => { to: Pt[]; via?: boolean } | undefined) = () => undefined;
+
+if (mode === 'wide') {
+  const x0 = 300, y0 = 178, S = 380, n = 12, inset = 62, pitch = (S - inset * 2) / (n - 1);
+  len = 18; depth = 44; ext = 28; extTB = 14; size = 15; sizeTB = 14;
+  geom = { pkg: [x0, y0, S, S], cavity: [x0 + 34, y0 + 34, S - 68, S - 68], die: [376, y0 + 76, 228, 228], dot: [x0 + 16, y0 + 16], dotR: 5 };
+  for (let i = 0; i < n; i++) pinsOut.push({ side: 'l', i, x: x0, y: y0 + inset + i * pitch });
+  for (let i = 0; i < n; i++) pinsOut.push({ side: 'b', i, x: x0 + inset + i * pitch, y: y0 + S });
+  for (let i = 0; i < n; i++) pinsOut.push({ side: 'r', i, x: x0 + S, y: y0 + S - inset - i * pitch });
+  for (let i = 0; i < n; i++) pinsOut.push({ side: 't', i, x: x0 + S - inset - i * pitch, y: y0 });
+  // where each bare pin's trace goes: up into the RAM, right into the GPU, down into the SSD, the last three bottom pins
+  // round into the NIC, and the left ones stop at a via short of the intro text
+  route = (side, i, [ex, ey]) => {
+    const turn = 610 + (11 - i) * 24;
+    if (side === 't') return { to: [[ex, -8]] };
+    if (side === 'r') return { to: [[870, ey]] };
+    if (side === 'b' && i < 9) return { to: [[ex, 690]] };
+    if (side === 'b') return { to: [[ex, turn], [ex + 20, turn + 20], [870, turn + 20]] };
+    return { to: [[24, ey]], via: true };
+  };
+} else {
+  const bx = 95, by = 16, bw = 170, bh = 560, np = 12, p2 = (bh - 60) / (np - 1);
+  len = 12; depth = 27; ext = 6; extTB = 6; size = 12.5; sizeTB = 12.5;
+  geom = { pkg: [bx, by, bw, bh], cavity: [bx + 24, by + 24, bw - 48, bh - 48], die: [130, by + 34, 100, bh - 68], dot: [bx + 12, by + 12], dotR: 3.5,
+    notch: `M${bx + bw / 2 - 12} ${by}a12 12 0 0 0 24 0` };
+  for (let i = 0; i < np; i++) pinsOut.push({ side: 'l', i, x: bx, y: by + 30 + i * p2 });
+  for (let i = 0; i < np; i++) pinsOut.push({ side: 'r', i, x: bx + bw, y: by + bh - 30 - i * p2 });
+}
+const [dx, dy, dw, dh] = geom.die;
+---
+<rect x={geom.pkg[0]} y={geom.pkg[1]} width={geom.pkg[2]} height={geom.pkg[3]} class="body pkg" />
+{geom.notch && <path d={geom.notch} class="thin" />}
+<rect x={geom.cavity[0]} y={geom.cavity[1]} width={geom.cavity[2]} height={geom.cavity[3]} class="paper" />
+<circle cx={geom.dot[0]} cy={geom.dot[1]} r={geom.dotR} class="ink" />
+{pinsOut.map((pp, n) => {
+  const p = byPos.get(`${pp.side}:${pp.i}`), num = n + 1, tb = pp.side === 't' || pp.side === 'b';
+  const ox = pp.side === 'l' ? -1 : pp.side === 'r' ? 1 : 0, oy = pp.side === 't' ? -1 : pp.side === 'b' ? 1 : 0;
+  const e: Pt = [pp.x + ox * len, pp.y + oy * len];
+  return p
+    ? <CpuPin side={pp.side} x={pp.x} y={pp.y} len={len} depth={depth} num={num}
+              fact={{ key: p.id, name: p.label, label: label(p, num), href: p.action?.href, size: tb ? sizeTB : size, run: mode === 'wide' ? runs[p.id] : undefined, ext: tb ? extTB : ext }} />
+    : (() => { const r = route(pp.side, pp.i, e);
+        return <CpuPin side={pp.side} x={pp.x} y={pp.y} len={len} depth={depth} num={num}
+                       trace={r && { ...r, seed: (pp.i * 7 + 'ltrb'.indexOf(pp.side) * 3) % 10, inward: pp.i % 2 === 1 }} />; })();
+})}
+<rect x={dx} y={dy} width={dw} height={dh} class="paper die" />
+<g class="mark"><Lines x={dx + dw / 2} y={dy + dh / 2 - markH / 2 + marking[0][1] * 0.5} rows={marking} /></g>
