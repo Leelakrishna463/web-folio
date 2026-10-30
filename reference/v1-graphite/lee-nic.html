@@ -1,0 +1,404 @@
+<title>lee.sh NIC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: the Contact page of lee.sh. Same language as the CPU page: graphite, amber traces, the board blurred behind,
+   facts floating beside gold pads and wired to the part. */
+
+:root {
+  --bg: #0b0d10; --bg-lift: #13171c; --chip: #11151a; --ink: #c3ccd5; --ink-dim: #5f6a76;
+  --glow: #ffb547; --hot: #ffd796; --text: #eef1f4; --muted: #7d8792; --green: #4fe08a;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; background: var(--bg); color: var(--text); }
+body { margin: 0; font-family: var(--sans); overflow: hidden; }
+.scene { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, var(--bg-lift), var(--bg) 70%); }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#far { filter: blur(7px); opacity: .8; transform: scale(1.04); }
+#far .p { fill: none; stroke: var(--ink-dim); stroke-width: 3; }
+#far .f { fill: #10141a; stroke: var(--ink-dim); stroke-width: 3; }
+
+.tr { fill: none; stroke: var(--glow); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; transition: opacity .3s, stroke .3s; }
+.tr-glow { fill: none; stroke: var(--glow); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+.tr.hot { opacity: 1; stroke: var(--hot); }
+.via { fill: var(--bg); stroke: var(--glow); stroke-width: 1.6; opacity: .7; }
+.pulse { fill: none; stroke: #ffe2a8; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 14 2000; animation: run linear infinite; }
+@keyframes run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2014; } }
+.wire { fill: none; stroke: var(--glow); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s, stroke-width .25s; }
+.wire.hot { stroke: var(--hot); stroke-width: 2.6; }
+.wire-glow { fill: none; stroke: var(--glow); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .32; transition: opacity .25s; }
+.wire-glow.hot { opacity: .6; }
+.wire-pulse { fill: none; stroke: #fff0cc; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 12 3000; animation: run2 linear infinite; }
+@keyframes run2 { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -3012; } }
+.wpad { fill: var(--bg); stroke: var(--glow); stroke-width: 1.8; }
+.wpad.hot { fill: var(--glow); }
+
+/* line-drawn parts */
+.body { fill: var(--chip); stroke: var(--ink); stroke-width: 1.6; transition: stroke .25s, filter .25s; }
+.lid { fill: url(#sheen); stroke: var(--ink); stroke-width: 1.3; transition: stroke .25s; }
+.ln { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+.gold { fill: none; stroke: #d9b25a; stroke-width: 1.6; }
+.etch { font-family: var(--mono); fill: var(--text); }
+.etch.dim { fill: var(--muted); }
+.part { cursor: default; }
+.part.hot .body, .part.hot .lid { stroke: var(--glow); }
+.part.hot { filter: drop-shadow(0 0 14px rgba(255, 181, 71, .35)); }
+#comp { filter: drop-shadow(0 0 22px rgba(255, 181, 71, .14)) drop-shadow(0 30px 40px rgba(0, 0, 0, .6)); }
+.breathe { animation: breathe 6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: .85; } }
+
+/* floating facts */
+.callout { transition: opacity .4s; }
+.callout .bob { animation: bob 7s ease-in-out infinite; }
+.callout:nth-child(2n) .bob { animation-duration: 8s; animation-delay: -2s; }
+.callout:nth-child(3n) .bob { animation-duration: 6.5s; animation-delay: -4s; }
+.callout:nth-child(5n) .bob { animation-duration: 8.5s; animation-delay: -3s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.ref { font: 600 10.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--glow); }
+.intro { margin: 8px 0 0; font: 500 clamp(15px, 1.25vw, 18px)/1.5 var(--sans); color: var(--text); text-wrap: pretty; }
+.k { display: block; font: 600 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.k b { color: var(--glow); font-weight: 600; margin-right: 8px; }
+.v { display: block; margin-top: 3px; font: 400 15px/1.45 var(--sans); color: var(--text); }
+.v + .v { margin-top: 6px; }
+.v small { font: 500 11px var(--mono); color: var(--muted); letter-spacing: .06em; margin-right: 6px; text-transform: uppercase; }
+.callout.hot .k { color: var(--hot); }
+.btn {
+  font: 600 13px var(--mono); text-decoration: none; padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center; cursor: pointer;
+  color: var(--glow); border: 1px solid rgba(255, 181, 71, .55); background: rgba(255, 181, 71, .06);
+}
+.btn:hover { background: rgba(255, 181, 71, .14); border-color: var(--glow); }
+.btn.primary { background: var(--glow); color: #1b1305; border-color: var(--glow); }
+.btn:focus-visible, .callout a:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.anchor { position: absolute; left: -14px; top: 7px; width: 1px; height: 1px; }
+
+#wires { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.brand { position: fixed; z-index: 3; top: calc(22px + env(safe-area-inset-top, 0px)); left: 24px; font: 700 18px var(--mono); color: var(--glow); }
+.hint {
+  position: fixed; z-index: 3; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  font: 500 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+
+@media (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .callout { position: fixed; z-index: 2; }
+  .callout[data-place="left"] { text-align: right; }
+  .callout[data-align="end"]:not([data-place="right"]) { text-align: right; }
+  .callout .anchor { display: none; }
+}
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  body { overflow-y: auto; }
+  .scene { position: absolute; height: var(--scene-h, 56svh); }
+  #wires { position: absolute; height: max(100%, var(--doc-h, 100%)); }
+  .facts { position: absolute; left: 52px; right: 20px; top: var(--scene-h, 56svh); display: grid; gap: 16px; padding-bottom: 72px; z-index: 2; }
+  .callout { position: relative; }
+  .intro { font-size: 16px; }
+  .v { font-size: 14.5px; }
+  body .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .wire-pulse { display: none; }
+  .breathe, .callout .bob { animation: none; }
+}
+
+
+.lanes { fill: none; stroke: var(--glow); stroke-width: 1.3; opacity: .45; stroke-linejoin: round; }
+.port .hole, .hole { fill: #07090b; }
+.halo { fill: rgba(255,181,71,.07); stroke: var(--glow); stroke-width: 1.5; opacity: .55; filter: drop-shadow(0 0 18px rgba(255,181,71,.65)); animation: breathe 4s ease-in-out infinite; }
+.asic .core { stroke: var(--glow); }
+.asic.hot .halo { opacity: 1; animation: none; }
+.led-link { fill: var(--green); filter: drop-shadow(0 0 4px var(--green)); }
+.led-act { fill: var(--glow); filter: drop-shadow(0 0 4px var(--glow)); animation: act 1.9s steps(1) infinite; }
+@keyframes act { 0%,100%{opacity:1} 9%{opacity:.15} 13%{opacity:1} 31%{opacity:.2} 34%{opacity:1} 37%{opacity:.2} 41%{opacity:1} 66%{opacity:.15} 72%{opacity:1} }
+.part { outline: none; }
+.part[tabindex]:focus-visible .body { stroke: var(--glow); }
+.callout[data-key="ctrl"] { text-align: center; }
+.callout[data-key="ctrl"] .intro { font-size: clamp(18px, 1.6vw, 24px); font-weight: 600; }
+.mailrow { margin-top: 8px; }
+.callout[data-key="ctrl"] .intro { margin-top: 4px; }
+#mail { font: 600 16px var(--mono); color: var(--glow); }
+.copy { font: 600 11px var(--mono); color: var(--text); background: transparent; border: 1px solid #343b44; padding: 5px 9px; margin-left: 10px; cursor: pointer; min-height: 28px; }
+.copy:hover { border-color: var(--muted); }
+.copy:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.led-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); margin-right: 8px; vertical-align: 1px; }
+.v.dim { color: var(--muted); font-size: 13px; }
+.callout a.btn { color: #1b1305; text-decoration: none; margin-top: 4px; }
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  :root { --scene-h: 42svh; }
+  .callout[data-key="ctrl"] { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) { .led-act, .halo { animation: none; } }
+
+</style>
+
+<div class="scene" role="img" aria-label="Lee's contact page drawn as a network card: Ethernet ports, transceivers, a glowing controller chip holding Lee's email, memory buffers and a PCIe connector.">
+  <svg id="far" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<rect class="f" x="380" y="-80" width="840" height="40"></rect><rect class="f" x="380" y="-20" width="840" height="40"></rect>
+<rect class="f" x="1300" y="820" width="380" height="260"></rect><circle class="p" cx="1480" cy="940" r="100"></circle>
+<rect class="f" x="-160" y="820" width="320" height="220"></rect></svg>
+  <svg id="near" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1d232a"></stop><stop offset=".45" stop-color="#151a20"></stop>
+        <stop offset=".55" stop-color="#1b2128"></stop><stop offset="1" stop-color="#12161b"></stop>
+      </linearGradient>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"></feGaussianBlur></filter>
+    </defs>
+    <g id="glow" filter="url(#soft)" class="breathe"></g>
+    <g id="lines"></g><g id="pulses"></g><g id="vias"></g>
+    <g id="wired"></g>
+    <g id="comp">
+<rect class="body" x="400" y="300" width="860" height="340" rx="3"></rect>
+<circle class="body" cx="1238" cy="322" r="7"></circle><circle class="body" cx="1238" cy="600" r="7"></circle>
+<path class="lanes" d="M508 353 H560 M630 353 H660 L713 406 H730 M508 361 H560 M630 361 H660 L713 414 H730 M508 433 H560 M630 433 H660 L673 446 H730 M508 441 H560 M630 441 H660 L673 454 H730 M508 513 H560 M630 513 H660 L687 486 H730 M508 521 H560 M630 521 H660 L687 494 H730 M508 593 H560 M630 593 H660 L727 526 H730 M508 601 H560 M630 601 H660 L727 534 H730 M930 356 H1000 M930 356 H1110 M930 446 H1000 M930 446 H1110 "></path>
+<g class="part" data-key="phy"><path class="ln" d="M568.0 331 v6 M568.0 377 v6 M578.8 331 v6 M578.8 377 v6 M589.6 331 v6 M589.6 377 v6 M600.4 331 v6 M600.4 377 v6 M611.2 331 v6 M611.2 377 v6 M622.0 331 v6 M622.0 377 v6 "></path><rect class="body" x="560" y="337" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="360.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 411 v6 M568.0 457 v6 M578.8 411 v6 M578.8 457 v6 M589.6 411 v6 M589.6 457 v6 M600.4 411 v6 M600.4 457 v6 M611.2 411 v6 M611.2 457 v6 M622.0 411 v6 M622.0 457 v6 "></path><rect class="body" x="560" y="417" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="440.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 491 v6 M568.0 537 v6 M578.8 491 v6 M578.8 537 v6 M589.6 491 v6 M589.6 537 v6 M600.4 491 v6 M600.4 537 v6 M611.2 491 v6 M611.2 537 v6 M622.0 491 v6 M622.0 537 v6 "></path><rect class="body" x="560" y="497" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="520.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 571 v6 M568.0 617 v6 M578.8 571 v6 M578.8 617 v6 M589.6 571 v6 M589.6 617 v6 M600.4 571 v6 M600.4 617 v6 M611.2 571 v6 M611.2 617 v6 M622.0 571 v6 M622.0 617 v6 "></path><rect class="body" x="560" y="577" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="600.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text></g>
+<g class="part" data-key="port" tabindex="0" aria-label="Ethernet ports">
+<rect class="body" x="360" y="260" width="40" height="420"></rect>
+<path class="ln" d="M360 260 h-14 v24 h14 M360 680 h-14 v-24 h14"></path>
+<rect class="body" x="396" y="322" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="330" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 338 v12 M436 338 v12 M442 338 v12 M448 338 v12 M454 338 v12 M460 338 v12 M466 338 v12 M472 338 v12 "></path>
+<path class="body hole" d="M364 334 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="332" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -0.0s" x="492" y="374" width="10" height="7"></rect>
+<rect class="body" x="396" y="402" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="410" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 418 v12 M436 418 v12 M442 418 v12 M448 418 v12 M454 418 v12 M460 418 v12 M466 418 v12 M472 418 v12 "></path>
+<path class="body hole" d="M364 414 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="412" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -0.7s" x="492" y="454" width="10" height="7"></rect>
+<rect class="body" x="396" y="482" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="490" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 498 v12 M436 498 v12 M442 498 v12 M448 498 v12 M454 498 v12 M460 498 v12 M466 498 v12 M472 498 v12 "></path>
+<path class="body hole" d="M364 494 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="492" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -1.4s" x="492" y="534" width="10" height="7"></rect>
+<rect class="body" x="396" y="562" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="570" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 578 v12 M436 578 v12 M442 578 v12 M448 578 v12 M454 578 v12 M460 578 v12 M466 578 v12 M472 578 v12 "></path>
+<path class="body hole" d="M364 574 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="572" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -2.1s" x="492" y="614" width="10" height="7"></rect>
+</g>
+<g class="part" data-key="buf" tabindex="0" aria-label="Memory buffers">
+  <path class="ln" d="M1008.0 324 v6 M1008.0 382 v6 M1022.8 324 v6 M1022.8 382 v6 M1037.6 324 v6 M1037.6 382 v6 M1052.4 324 v6 M1052.4 382 v6 M1067.2 324 v6 M1067.2 382 v6 M1082.0 324 v6 M1082.0 382 v6 "></path><rect class="body" x="1000" y="330" width="90" height="52" rx="1"></rect><text class="etch dim" x="1045.0" y="359.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1118.0 324 v6 M1118.0 382 v6 M1132.8 324 v6 M1132.8 382 v6 M1147.6 324 v6 M1147.6 382 v6 M1162.4 324 v6 M1162.4 382 v6 M1177.2 324 v6 M1177.2 382 v6 M1192.0 324 v6 M1192.0 382 v6 "></path><rect class="body" x="1110" y="330" width="90" height="52" rx="1"></rect><text class="etch dim" x="1155.0" y="359.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1008.0 414 v6 M1008.0 472 v6 M1022.8 414 v6 M1022.8 472 v6 M1037.6 414 v6 M1037.6 472 v6 M1052.4 414 v6 M1052.4 472 v6 M1067.2 414 v6 M1067.2 472 v6 M1082.0 414 v6 M1082.0 472 v6 "></path><rect class="body" x="1000" y="420" width="90" height="52" rx="1"></rect><text class="etch dim" x="1045.0" y="449.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1118.0 414 v6 M1118.0 472 v6 M1132.8 414 v6 M1132.8 472 v6 M1147.6 414 v6 M1147.6 472 v6 M1162.4 414 v6 M1162.4 472 v6 M1177.2 414 v6 M1177.2 472 v6 M1192.0 414 v6 M1192.0 472 v6 "></path><rect class="body" x="1110" y="420" width="90" height="52" rx="1"></rect><text class="etch dim" x="1155.0" y="449.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text>
+</g>
+<g class="part asic" data-key="ctrl" tabindex="0" aria-label="Controller">
+  <rect class="halo" x="700" y="340" width="260" height="260" rx="16"></rect>
+  <path class="ln" d="M744 358 v12 M744 570 v12 M718 384 h12 M930 384 h12 M756 358 v12 M756 570 v12 M718 396 h12 M930 396 h12 M768 358 v12 M768 570 v12 M718 408 h12 M930 408 h12 M780 358 v12 M780 570 v12 M718 420 h12 M930 420 h12 M792 358 v12 M792 570 v12 M718 432 h12 M930 432 h12 M804 358 v12 M804 570 v12 M718 444 h12 M930 444 h12 M816 358 v12 M816 570 v12 M718 456 h12 M930 456 h12 M828 358 v12 M828 570 v12 M718 468 h12 M930 468 h12 M840 358 v12 M840 570 v12 M718 480 h12 M930 480 h12 M852 358 v12 M852 570 v12 M718 492 h12 M930 492 h12 M864 358 v12 M864 570 v12 M718 504 h12 M930 504 h12 M876 358 v12 M876 570 v12 M718 516 h12 M930 516 h12 M888 358 v12 M888 570 v12 M718 528 h12 M930 528 h12 M900 358 v12 M900 570 v12 M718 540 h12 M930 540 h12 M912 358 v12 M912 570 v12 M718 552 h12 M930 552 h12 "></path>
+  <rect class="body" x="730" y="370" width="200" height="200" rx="2"></rect>
+  <rect class="lid core" x="760" y="400" width="140" height="140" rx="2"></rect>
+  <path class="ln" d="M742 558 v-12 l12 12 z"></path>
+  <text class="etch" x="830.0" y="468.0" text-anchor="middle" style="font-size: 30px; font-weight: 800; letter-spacing: .06em">LEE</text>
+  <text class="etch" x="830.0" y="490.0" text-anchor="middle" style="font-size: 9px; font-weight: 600; letter-spacing: .2em">NIC CONTROLLER</text>
+  <text class="etch dim" x="830.0" y="506.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .16em">LINK READY</text>
+</g>
+<g class="part" data-key="bus" tabindex="0" aria-label="PCIe connector">
+  <path class="gold" d="M660 622 V640 M666 622 V640 M672 622 V640 M678 622 V640 M684 622 V640 M690 622 V640 M696 622 V640 M702 622 V640 M708 622 V640 M714 622 V640 M720 622 V640 M726 622 V640 M732 622 V640 M738 622 V640 M744 622 V640 M750 622 V640 M756 622 V640 M762 622 V640 M768 622 V640 M786 622 V640 M792 622 V640 M798 622 V640 M804 622 V640 M810 622 V640 M816 622 V640 M822 622 V640 M828 622 V640 M834 622 V640 M840 622 V640 M846 622 V640 M852 622 V640 M858 622 V640 M864 622 V640 M870 622 V640 M876 622 V640 M882 622 V640 M888 622 V640 M894 622 V640 M900 622 V640 M906 622 V640 M912 622 V640 M918 622 V640 M924 622 V640 M930 622 V640 M936 622 V640 M942 622 V640 M948 622 V640 M954 622 V640 M960 622 V640 M966 622 V640 M972 622 V640 M978 622 V640 M984 622 V640 M990 622 V640 M996 622 V640 M1002 622 V640 M1008 622 V640 M1014 622 V640 M1020 622 V640 M1026 622 V640 M1032 622 V640 M1038 622 V640 M1044 622 V640 M1050 622 V640 M1056 622 V640 M1062 622 V640 M1068 622 V640 M1074 622 V640 M1080 622 V640 M1086 622 V640 M1092 622 V640 M1098 622 V640 M1104 622 V640 M1110 622 V640 M1116 622 V640 M1122 622 V640 M1128 622 V640 M1134 622 V640 M1140 622 V640 M1146 622 V640 M1152 622 V640 M1158 622 V640 M1164 622 V640 M1170 622 V640 M1176 622 V640 M1182 622 V640 M1188 622 V640 M1194 622 V640 "></path>
+  <text class="etch dim" x="1230" y="614" text-anchor="end" style="font-size: 9px; letter-spacing: .2em">PCIe 5.0 x16</text>
+</g>
+<text class="etch dim" x="530" y="324" style="font-size: 9px; letter-spacing: .2em">LEE-NIC · 4× 2.5 GbE</text>
+</g>
+  </svg>
+</div>
+
+<svg id="wires" aria-hidden="true"></svg>
+
+<section class="facts" aria-label="Contact">
+  <div class="callout" data-key="ctrl" data-from="830.0,340" data-dir="u" data-lane="830.0" data-end="240" data-place="above" data-align="center" data-w="420">
+    <span class="anchor"></span><div class="bob"><div class="ref">U5 · Contact · Controller</div><p class="intro">Let's connect.</p><span class="v dim">One address, always listening.</span><span class="v mailrow"><span id="mail">[you@example.com]</span><button class="copy" id="copy" type="button">Copy</button></span></div>
+  </div>
+  <div class="callout" data-key="port" data-from="346,470" data-dir="l" data-lane="470" data-end="250" data-place="left" data-align="start" data-w="280">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>PORTS</b>Link up</span><span class="v"><span class="led-dot" aria-hidden="true"></span>Open to senior backend roles</span><span class="v dim">[Bengaluru · on-site or remote]</span></div>
+  </div>
+  <div class="callout" data-key="buf" data-from="1200,356" data-dir="r" data-lane="330" data-end="1330" data-place="right" data-align="start" data-w="260">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>BUFFERS</b>Nothing dropped</span><span class="v">Every message gets a reply, usually within [24 hours].</span></div>
+  </div>
+  <div class="callout" data-key="bus" data-from="1260,590" data-dir="r" data-lane="600" data-end="1330" data-place="right" data-align="start" data-w="260">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>PCIe</b>Ready to slot in</span><span class="v"><a class="btn primary" href="#" target="_blank" rel="noopener">Download résumé ↗</a></span></div>
+  </div>
+</section>
+
+<div class="brand">lee.sh</div>
+<div class="hint">Hover a component</div>
+
+<script>
+window.PORTS = [{'x': 930, 'y': 640, 'dir': 'd', 'n': 30, 'sp': 18, 'fan': 0.5}];
+window.NARROW_BOX = '330 250 960 450';
+window.NARROW_FROM = [360, 660];
+
+</script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', RUN = 22;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var wide = matchMedia('(min-width: 1100px) and (min-aspect-ratio: 5/4)');
+  var near = document.getElementById('near'), far = document.getElementById('far');
+  var callouts = [].slice.call(document.querySelectorAll('.callout'));
+  var PORTS = window.PORTS || [], WIDE_BOX = '0 0 1600 1000', NARROW_BOX = window.NARROW_BOX;
+  var DIRS = { r: [1, 0], l: [-1, 0], u: [0, -1], d: [0, 1] };
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  function clear(id) { var g = document.getElementById(id); while (g.firstChild) g.removeChild(g.firstChild); return g; }
+  function toScreen(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM()); }
+  function toVB(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM().inverse()); }
+  function d(pts) { return pts.map(function (p, k) { return (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' '); }
+  function entry(p, q, rects) {
+    var best = null;
+    rects.forEach(function (r) {
+      var dx = q[0] - p[0], dy = q[1] - p[1], t0 = 0, t1 = 1, ok = true;
+      var P = [-dx, dx, -dy, dy], Q = [p[0] - r.x0, r.x1 - p[0], p[1] - r.y0, r.y1 - p[1]];
+      for (var i = 0; i < 4 && ok; i++) {
+        if (P[i] === 0) { if (Q[i] < 0) ok = false; }
+        else { var u = Q[i] / P[i]; if (P[i] < 0) { if (u > t1) ok = false; else if (u > t0) t0 = u; } else { if (u < t0) ok = false; else if (u < t1) t1 = u; } }
+      }
+      if (ok && (best === null || t0 < best)) best = t0;
+    });
+    return best;
+  }
+  function clip(pts, rects) {
+    var out = [pts[0]];
+    for (var k = 0; k < pts.length - 1; k++) {
+      var p = pts[k], q = pts[k + 1], t = entry(p, q, rects);
+      if (t !== null) {
+        var len = Math.hypot(q[0] - p[0], q[1] - p[1]), u = Math.max(0, t - (len ? 10 / len : 0));
+        out.push([p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u]);
+        return { pts: out, cut: true };
+      }
+      out.push(q);
+    }
+    return { pts: out, cut: false };
+  }
+
+  // ambient traces: each port is a row of contacts fanning out like the CPU's pins
+  function ambient(keep) {
+    var seed = 11;
+    function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    var glow = clear('glow'), lines = clear('lines'), pulses = clear('pulses'), vias = clear('vias');
+    PORTS.forEach(function (p) {
+      var o = DIRS[p.dir];
+      for (var i = 0; i < p.n; i++) {
+        var t = (i - (p.n - 1) / 2) * p.sp;
+        var ex = p.x + (o[0] ? 0 : t), ey = p.y + (o[0] ? t : 0);
+        var r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd(), r5 = rnd();
+        var spread = t * (p.fan == null ? 0.9 : p.fan), run1 = RUN + r1 * 14;
+        var x1 = ex + o[0] * run1, y1 = ey + o[1] * run1;
+        var x2 = x1 + (o[0] ? o[0] * Math.abs(spread) : spread), y2 = y1 + (o[0] ? spread : o[1] * Math.abs(spread));
+        var farL = 1200, stop = r2 < (p.short || 0.38) ? 90 + r3 * 240 : farL;
+        if (p.max) stop = Math.min(stop, p.max * (0.5 + r3 * 0.5));
+        var c = clip([[ex, ey], [x1, y1], [x2, y2], [x2 + o[0] * stop, y2 + o[1] * stop]], keep);
+        var dd = d(c.pts), attrs = { d: dd, class: 'tr' };
+        if (p.key) attrs['data-key'] = p.key;
+        el('path', { d: dd, class: 'tr-glow' }, glow);
+        el('path', attrs, lines);
+        if (c.cut || stop < farL) { var e = c.pts[c.pts.length - 1]; el('circle', { cx: e[0], cy: e[1], r: 4, class: 'via' }, vias); }
+        if (!reduce && r4 < 0.45 && !c.cut) {
+          var q = el('path', { d: dd, class: 'pulse' }, pulses);
+          q.style.animationDuration = (3.5 + r5 * 4).toFixed(2) + 's'; q.style.animationDelay = (-r5 * 6).toFixed(2) + 's';
+        }
+      }
+    });
+  }
+
+  // a wire: out of the part, one 45° bend onto its lane, then straight to the pad
+  function route(c) {
+    var f = c.dataset.from.split(',').map(Number), o = DIRS[c.dataset.dir], lane = +c.dataset.lane, end = +c.dataset.end, pts = [[f[0], f[1]]];
+    if (o[0]) { var x1 = f[0] + o[0] * RUN; pts.push([x1, f[1]], [x1 + o[0] * Math.abs(lane - f[1]), lane], [end, lane]); return { pts: pts, pad: { x: end, y: lane } }; }
+    var y1 = f[1] + o[1] * RUN; pts.push([f[0], y1], [lane, y1 + o[1] * Math.abs(lane - f[0])], [lane, end]); return { pts: pts, pad: { x: lane, y: end } };
+  }
+  function drawWire(pts, key, k, g) {
+    var dd = d(pts);
+    el('path', { d: dd, class: 'wire-glow', 'data-key': key }, g);
+    el('path', { d: dd, class: 'wire', 'data-key': key }, g);
+    if (!reduce) { var p = el('path', { d: dd, class: 'wire-pulse' }, g); p.style.animationDuration = (2.8 + k * 0.4) + 's'; p.style.animationDelay = (-k * 0.8) + 's'; }
+    var e = pts[pts.length - 1];
+    el('rect', { x: e[0] - 5, y: e[1] - 5, width: 10, height: 10, class: 'wpad', 'data-key': key }, g);
+  }
+
+  function layoutWide() {
+    near.setAttribute('viewBox', WIDE_BOX); far.setAttribute('viewBox', WIDE_BOX);
+    near.setAttribute('preserveAspectRatio', 'xMidYMid slice'); far.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    clear('wires');
+    var keep = [], wires = [];
+    callouts.forEach(function (c) {
+      c.style.left = c.style.top = c.style.width = '';
+      var r = route(c); wires.push(r);
+      var P = toScreen(r.pad.x, r.pad.y), place = c.dataset.place, align = c.dataset.align || 'start', gap = 16;
+      var want = +(c.dataset.w || 320);
+      var maxW = place === 'left' ? P.x - gap - 24 : place === 'right' ? innerWidth - P.x - gap - 24 : innerWidth - 32;
+      c.style.width = Math.max(160, Math.min(want, maxW)) + 'px';
+      var w = c.offsetWidth, h = c.offsetHeight, line = 7, left, top;
+      if (place === 'left') { left = P.x - gap - w; top = P.y - line; }
+      else if (place === 'right') { left = P.x + gap; top = P.y - line; }
+      else {
+        left = align === 'end' ? P.x + 10 - w : align === 'center' ? P.x - w / 2 : P.x - 10;
+        top = place === 'above' ? P.y - gap - h : P.y + gap;
+      }
+      left = Math.max(16, Math.min(innerWidth - w - 16, left)); top = Math.max(56, Math.min(innerHeight - h - 40, top));
+      c.style.left = left + 'px'; c.style.top = top + 'px';
+      var tl = toVB(left - 14, top - 12), br = toVB(left + w + 14, top + h + 12);
+      keep.push({ x0: tl.x, y0: tl.y, x1: br.x, y1: br.y });
+    });
+    ambient(keep.concat(window.KEEP || []));
+    var g = clear('wired');
+    wires.forEach(function (r, k) { drawWire(r.pts, callouts[k].dataset.key, k, g); });
+  }
+
+  function centre(e) { var r = e.getBoundingClientRect(); return { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY }; }
+  function layoutNarrow() {
+    near.setAttribute('viewBox', NARROW_BOX); far.setAttribute('viewBox', NARROW_BOX);
+    near.setAttribute('preserveAspectRatio', 'xMidYMid meet'); far.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    callouts.forEach(function (c) { c.style.left = c.style.top = c.style.width = ''; });
+    clear('wired');
+    var sc = document.querySelector('.scene').getBoundingClientRect();
+    var bottom = toVB(0, sc.bottom - 4);
+    ambient([{ x0: -9999, y0: bottom.y, x1: 9999, y1: 9999 }].concat(window.KEEP || []));
+    document.documentElement.style.removeProperty('--doc-h');
+    document.documentElement.style.setProperty('--doc-h', document.documentElement.scrollHeight + 'px');
+    var svg = clear('wires');
+    var from = window.NARROW_FROM, s = toScreen(from[0], from[1]); s = { x: s.x + scrollX, y: s.y + scrollY };
+    var anchors = callouts.map(function (c) { return centre(c.querySelector('.anchor')); });
+    var lane = 22, lastY = anchors[anchors.length - 1].y;
+    var trunk = 'M' + s.x + ' ' + s.y + ' H' + lane + ' V' + lastY;
+    el('path', { d: trunk, class: 'wire-glow' }, svg); el('path', { d: trunk, class: 'wire' }, svg);
+    if (!reduce) { var p = el('path', { d: trunk, class: 'wire-pulse' }, svg); p.style.animationDuration = '3.4s'; }
+    anchors.forEach(function (a, k) {
+      var tap = 'M' + lane + ' ' + a.y + ' H' + a.x;
+      el('path', { d: tap, class: 'wire', 'data-key': callouts[k].dataset.key }, svg);
+      el('rect', { x: a.x - 4, y: a.y - 4, width: 8, height: 8, class: 'wpad', 'data-key': callouts[k].dataset.key }, svg);
+    });
+    el('circle', { cx: s.x, cy: s.y, r: 4, class: 'wpad' }, svg);
+  }
+
+  function hot(key, on) { document.querySelectorAll('[data-key="' + key + '"]').forEach(function (x) { x.classList.toggle('hot', on); }); }
+  document.querySelectorAll('.callout[data-key], .part[data-key]').forEach(function (e) {
+    var k = e.getAttribute('data-key');
+    e.addEventListener('pointerenter', function () { hot(k, true); });
+    e.addEventListener('pointerleave', function () { hot(k, false); });
+    e.addEventListener('focusin', function () { hot(k, true); });
+    e.addEventListener('focusout', function () { hot(k, false); });
+  });
+
+  function layout() { if (wide.matches) layoutWide(); else layoutNarrow(); if (window.AFTER_LAYOUT) window.AFTER_LAYOUT(wide.matches); }
+  window.BOARD = { layout: layout, hot: hot, toScreen: toScreen, toVB: toVB, reduce: reduce };
+  layout();
+  addEventListener('resize', layout);
+  wide.addEventListener('change', layout);
+  if (document.fonts) document.fonts.ready.then(layout);
+})();
+</script>
+<script>
+(function () {
+  var copy = document.getElementById('copy');
+  copy.addEventListener('click', function () {
+    var el = document.getElementById('mail');
+    var select = function () { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = 'Selected'; };
+    try { navigator.clipboard.writeText(el.textContent.trim()).then(function () { copy.textContent = 'Copied'; }, select); } catch (err) { select(); }
+    setTimeout(function () { copy.textContent = 'Copy'; }, 1600);
+  });
+})();
+</script>

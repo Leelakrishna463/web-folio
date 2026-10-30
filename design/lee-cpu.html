@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Lee · Senior Backend Engineer</title>
+<meta name="description" content="About Lee, a senior backend engineer in Bengaluru (Python, Django, PostgreSQL), drawn as a CPU: hover a pin to read it.">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ds/ds.css">
+<link rel="stylesheet" href="ds/dark.css">
+<style>
+  :root { --glow-at: 64% 56%; }
+  /* a fact pin runs on out to a socket: ---() */
+  svg .sock { fill: var(--ground); stroke: var(--ink); stroke-width: 1.6; transition: fill .15s ease-out; }
+  svg .pr.on .sock { fill: var(--red); stroke: var(--red); }
+  /* a probed pin: its tag slides out with the lead, and fades as the box takes over */
+  svg .pr .slide { transition: transform .22s cubic-bezier(.4, 0, .2, 1); }
+  svg .pr.on .slide { transform: translate(var(--tx), var(--ty)); opacity: 0; transition: transform .22s cubic-bezier(.4, 0, .2, 1), opacity .1s ease-out .12s; }
+  svg .slide { transition: opacity .15s ease-out; }
+  svg.probing .pr:not(.on) .slide { opacity: .3; }
+  @media (prefers-reduced-motion: reduce) {
+    svg .pr .slide, svg .sock { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="lee-board.html">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    <li><a href="lee-board.html"><b>1</b>Overview</a></li>
+    <li><a href="lee-cpu.html" aria-current="page"><b>2</b>About</a></li>
+    <li><a href="lee-ram.html"><b>3</b>Skills</a></li>
+    <li><a href="lee-ssd.html"><b>4</b>Experience</a></li>
+    <li><a href="lee-gpu.html"><b>5</b>Projects</a></li>
+    <li><a href="lee-nic.html"><b>6</b>Contact</a></li>
+  </ul></nav>
+  <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>
+
+<main class="stage">
+  <section class="intro" aria-labelledby="who">
+    <h1 id="who">Lee</h1>
+    <p class="role">Senior Backend Engineer · Bengaluru</p>
+    <p class="lede">I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.</p>
+    <ul class="quick">
+      <li>~5 years in backend engineering</li>
+      <li>Python · Django · PostgreSQL · Redis</li>
+      <li>Open to senior backend roles · IST (UTC+5:30)</li>
+    </ul>
+    <div class="actions">
+      <a class="btn solid" href="lee-nic.html">Email</a>
+      <a class="btn" href="#" target="_blank" rel="noopener">Résumé PDF</a>
+    </div>
+    <p class="hint">Hover, tab or tap a pin on the chip to read it.</p>
+  </section>
+  <figure id="fig" data-label="Lee's CPU, decapped. The die is marked LEE, Senior Backend Engineer, Python, Django, PostgreSQL, Bengaluru, open to senior backend roles. Each pin is a fact; hover, focus or tap a pin to read it.">
+    <div class="canvas"></div>
+    <p class="sr" aria-live="polite" id="live"></p>
+    <ul class="facts">
+      <li>Lee, Senior Backend Engineer, Bengaluru, India</li>
+      <li>I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.</li>
+      <li>Core stack: Python, Django, PostgreSQL, Redis</li>
+      <li>~5 years in backend engineering</li>
+      <li>Open to senior backend roles · India Standard Time (UTC+5:30)</li>
+      <li><a href="lee-nic.html">Email</a> · <a href="#">Résumé PDF</a></li>
+    </ul>
+  </figure>
+</main>
+
+<script src="ds/ds.js"></script>
+<script src="ds/live.js"></script>
+<script>
+(function () {
+  // what each pin says: [type, lines, action, link]
+  var PIN = {
+    PYTHON: ['I/O', ['Core language.', 'Daily driver, with Django.']],
+    POSTGRESQL: ['I/O', ['Main database.', 'Daily driver, with Redis.']],
+    APIS: ['Output', ['I build the APIs, data models and background jobs behind products.']],
+    EMAIL: ['I/O', ['One channel: email.'], 'Click to open contact', 'lee-nic.html'],
+    'RÉSUMÉ': ['Output', ['Résumé as a PDF.'], 'Click to download', '#'],
+    '~5 YEARS': ['Clock', ['~5 years in backend engineering.']],
+    'IST UTC+5:30': ['Clock', ['India Standard Time, UTC+5:30.']]
+  };
+  // a row of n pins with facts at the given indexes; every other pin is bare ('')
+  function row(n, at) { var a = []; for (var i = 0; i < n; i++) a.push(at[i] || ''); return a; }
+  // only a few pins carry a fact; the rest stay bare, so the chip reads at a glance
+  var WIDE = {   // QFP-48, numbered anticlockwise from pin 1 at the top of the left side
+    l: row(12, { 3: 'PYTHON', 8: 'POSTGRESQL' }),
+    b: row(12, { 6: 'APIS' }),
+    r: row(12, { 2: 'EMAIL', 6: 'RÉSUMÉ', 9: '~5 YEARS' }),
+    t: row(12, { 4: 'IST UTC+5:30' })
+  };
+  var NARROW = { // TSSOP-24 on small screens, the same facts in two rows
+    l: row(12, { 2: 'PYTHON', 5: 'POSTGRESQL', 8: 'APIS' }),
+    r: row(12, { 2: 'EMAIL', 4: 'RÉSUMÉ', 7: '~5 YEARS', 9: 'IST UTC+5:30' })
+  };
+  // how far each fact pin runs out to its socket, by side and pin index: lengths differ widely, and stay short
+  // enough that a full-size box still fits beyond the socket
+  var RUN = { l: { 3: 70, 8: 8 }, b: { 6: 10 }, r: { 2: 64, 6: 6, 9: 36 }, t: { 4: 20 } };
+  var live = document.getElementById('live'), touch = matchMedia('(hover: none)');
+  var cur = null;   // { api, tips layer, pin geometry, mode, viewBox } for the current build
+
+  // the die keeps its own marking, always
+  function marking(api, g, D, narrow) {
+    var rows = narrow
+      ? [['LEE', 40, 'lt', -12], ['SENIOR', 12.5, 'lab'], ['BACKEND', 12.5, 'lab'], ['ENGINEER', 12.5, 'lab', 10], ['PYTHON', 12, 'lab'], ['DJANGO', 12, 'lab'], ['POSTGRESQL', 12, 'lab', 10], ['BENGALURU', 12, 'lab'], ['OPEN TO ROLES', 12, 'lt', 10], ['LEE-5Y e3', 11, 'num']]
+      : [['LEE', 66, 'lt', -22], ['SENIOR BACKEND ENGINEER', 14, 'lab', 6], ['PYTHON · DJANGO · POSTGRESQL', 13, 'lab', 16], ['BENGALURU · OPEN TO ROLES', 13, 'lt', 16], ['LEE-5Y · e3', 11, 'num']];
+    var h = rows.reduce(function (a, r) { return a + r[1] * 1.3 + (r[3] || 0); }, 0);
+    api.lines(g, D.x + D.w / 2, D.y + D.h / 2 - h / 2 + rows[0][1] * 0.5, rows, { lh: 1.3 });
+  }
+
+  // one pin: lead, inner lead-frame finger (stopping short of the die), number, and a name tag that slides out when probed
+  function pin(api, L, side, px, py, len, name, num, fs, depth, E, idx) {
+    var f = PIN[name], key = 'p' + num;
+    // a bare pin is only its lead and number: nothing to probe, and it stops at the cavity
+    var g = f ? api.probe(L.parts, key, { f: f, name: name, num: num, href: f[3], label: 'Pin ' + num + ', ' + name + ': ' + f[1].join(' ') + (f[2] ? ' ' + f[2] + '.' : ''), pad: 2 }) : api.g(L.parts);
+    var ox = side === 'l' ? -1 : side === 'r' ? 1 : 0, oy = side === 't' ? -1 : side === 'b' ? 1 : 0;
+    var ex = px + ox * len, ey = py + oy * len, fx = px - ox * depth, fy = py - oy * depth;
+    api.el('path', { d: 'M' + ex + ' ' + ey + 'L' + fx + ' ' + fy, class: 'pin' }, g);
+    // the number sits beside its lead, inside the package edge
+    api.text(g, px - ox * 14 + (oy ? 9 : 0), py - oy * 14 - (ox ? 9 : 0), String(num), { size: 10.5, cls: 'num', anchor: 'middle', mid: true });
+    // a bare pin is still wired to something: into the rest of the board, or straight off the edge of the screen
+    if (!f) {
+      if (L.route) L.route(g, side, idx, ex, ey);
+      else api.el('path', { d: 'M' + ex + ' ' + ey + 'l' + ox * 3000 + ' ' + oy * 3000, class: 'trace' }, g);
+      return;
+    }
+    if (cur.mode === 'wide') {
+      // a fact pin runs on out to a socket at its own length, so no two sockets line up
+      var run = RUN[side][idx];
+      api.el('path', { d: 'M' + ex + ' ' + ey + 'l' + ox * run + ' ' + oy * run, class: 'pin' }, g);
+      api.el('circle', { cx: ex + ox * (run + 4), cy: ey + oy * (run + 4), r: 4, class: 'sock' }, g);
+      ex += ox * (run + 8); ey += oy * (run + 8);
+    }
+    // probed, the lead shoots out past its end, then the box opens there
+    api.el('path', { d: 'M' + ex + ' ' + ey + 'l' + ox * E + ' ' + oy * E, class: 'ext', 'stroke-dasharray': E, 'stroke-dashoffset': E }, g);
+    var lx = ex + ox * 8, ly = ey + oy * 8, anchor = (side === 'l' || side === 'b') ? 'end' : 'start';
+    var slide = api.g(g, { class: 'slide', style: '--tx:' + ox * E + 'px;--ty:' + oy * E + 'px' });
+    var tg = api.g(slide, { transform: oy ? 'rotate(-90 ' + lx + ' ' + ly + ')' : null });
+    var t = api.text(tg, lx, ly, name, { size: fs, cls: 'lab out', anchor: anchor, mid: true });
+    var bb = t.getBBox();
+    tg.insertBefore(api.el('rect', { x: bb.x - 4, y: bb.y - 2, width: bb.width + 8, height: bb.height + 4, class: 'tagbg' }), t);
+    cur.pins[key] = { side: side, ox: ox, oy: oy, x: px, y: py, end: [ex + ox * E, ey + oy * E], f: f, name: name, num: num, idx: idx };
+  }
+
+  // the box that grows from a probed pin's lead: beside a side pin, above a top pin, below a bottom pin
+  function tip(key) {
+    var P = key && cur.pins[key];
+    if (!P) { while (cur.tips.firstChild) cur.tips.removeChild(cur.tips.firstChild); live.textContent = ''; return; }
+    var narrow = cur.mode === 'narrow', VW = cur.vb[0];
+    var W = narrow ? 180 : 256;
+    var rows = [{ small: P.f[0].toUpperCase() }].concat(P.f[1].map(function (t) { return { text: t }; }));
+    // on touch screens the first tap opened this box, so the action needs a second tap
+    if (P.f[2]) rows.push({ act: touch.matches ? P.f[2].replace('Click', 'Tap again') : P.f[2] });
+    var o = { end: P.end, at: P.y, W: W, narrow: narrow, vb: cur.vb, title: P.name, tag: 'PIN ' + P.num, flip: P.side === 'l', rows: rows,
+      dir: { l: 'l', r: 'r', t: 'u', b: 'd' }[P.side] };
+    // the narrow chip's boxes sit over its own side of the drawing, opening up or down by where the pin is
+    if (narrow) { o.dir = P.side; o.x = P.side === 'l' ? 2 : VW - W + 8; o.up = P.idx >= 6; }
+    LIVE.card(cur.api, cur.tips, o);
+    live.textContent = 'Pin ' + P.num + ', ' + P.name + ': ' + P.f[1].join(' ');
+  }
+
+  // the rest of the board, blurred behind the CPU: RAM above the chip, GPU and NIC off to the right (sliding to keep
+  // hugging the screen edge), SSD below; the bare traces end at their edges
+  function board(api, g) {
+    var B = LIVE.board(api, g), east = api.g(g);
+    B.ram(300, -74, 400); B.ssd(330, 690, 260);
+    B.gpu(870, 190, 280, 330, east); B.nic(870, 600, 240, 120, east);
+    return east;
+  }
+
+  // the drawing's edges follow the screen: left traces reach to just short of the intro, and GPU and NIC slide out to the
+  // right edge, however much room the drawing has around it
+  function fit() {
+    if (!cur || !cur.fits) return;
+    var e = LIVE.edge(cur.api.svg); if (!e) return;
+    var dx = Math.max(0, e.right - 1020);
+    cur.east.setAttribute('transform', 'translate(' + dx.toFixed(1) + ' 0)');
+    cur.fits.forEach(function (f) { f(e.left + 24, 870 + dx); });
+  }
+
+  var fig = DS.figure({
+    el: '#fig', wide: [1000, 740], narrow: [360, 810], narrowAt: 620,
+    onShow: function (o, key) { if (!cur) return; cur.api.svg.classList.toggle('probing', !!o); tip(o ? key : null); },
+    build: function (api, mode) {
+      var svg = api.svg, body = api.g(svg), parts = api.g(svg), top = api.g(svg), tips = api.g(svg);
+      var L = { parts: parts };
+      cur = { api: api, tips: tips, pins: {}, mode: mode, vb: mode === 'wide' ? [1000, 740] : [360, 810] };
+      if (mode === 'wide') {
+        // the sides are wide enough for a full box beyond the farthest socket; top and bottom shoot out less
+        var x0 = 300, y0 = 178, S = 380, n = 12, inset = 62, pitch = (S - inset * 2) / (n - 1), len = 18, num = 1, E = 28, Et = 14;
+        var D = { x: 376, y: y0 + 76, w: 228, h: 228 };
+        cur.east = board(api, body);
+        cur.fits = [];
+        // where each bare pin's trace goes: up into the RAM, right into the GPU, down into the SSD, the last three bottom
+        // pins round into the NIC, and the left ones stop at a via short of the intro text; fit() sets the far ends
+        L.route = function (g, side, i, ex, ey) {
+          var v = side === 'l' ? api.el('circle', { cy: ey, r: 3.5, class: 'via' }, g) : null, turn = 610 + (11 - i) * 24;
+          // each trace keeps its own rhythm; odd ones run inward
+          var t = LIVE.trace(api, g, (i * 7 + 'ltrb'.indexOf(side) * 3) % 10, i % 2 === 1);
+          if (v) g.appendChild(v);
+          cur.fits.push(function (left, east) {
+            t.set(side === 't' ? [[ex, ey], [ex, -8]]
+              : side === 'r' ? [[ex, ey], [east, ey]]
+              : side === 'b' && i < 9 ? [[ex, ey], [ex, 690]]
+              : side === 'b' ? [[ex, ey], [ex, turn], [ex + 20, turn + 20], [east, turn + 20]]
+              : [[ex, ey], [left, ey]]);
+            if (v) v.setAttribute('cx', left);
+          });
+        };
+        api.el('rect', { x: x0, y: y0, width: S, height: S, class: 'body pkg' }, body);
+        api.el('rect', { x: x0 + 34, y: y0 + 34, width: S - 68, height: S - 68, class: 'paper' }, body);   // the opened cavity
+        api.el('circle', { cx: x0 + 16, cy: y0 + 16, r: 5, class: 'ink' }, body);
+        api.el('rect', { x: D.x, y: D.y, width: D.w, height: D.h, class: 'paper die' }, top);
+        WIDE.l.forEach(function (nm, i) { pin(api, L, 'l', x0, y0 + inset + i * pitch, len, nm, num++, 15, 44, E, i); });
+        WIDE.b.forEach(function (nm, i) { pin(api, L, 'b', x0 + inset + i * pitch, y0 + S, len, nm, num++, 14, 44, Et, i); });
+        WIDE.r.forEach(function (nm, i) { pin(api, L, 'r', x0 + S, y0 + S - inset - i * pitch, len, nm, num++, 15, 44, E, i); });
+        WIDE.t.forEach(function (nm, i) { pin(api, L, 't', x0 + S - inset - i * pitch, y0, len, nm, num++, 14, 44, Et, i); });
+        marking(api, api.g(top, { class: 'mark' }), D, false);
+        fit();
+      } else {
+        var bx = 95, by = 16, bw = 170, bh = 560, np = 12, p2 = (bh - 60) / (np - 1), l2 = 12, k = 1, E2 = 6;
+        var D2 = { x: 130, y: by + 34, w: 100, h: bh - 68 };
+        api.el('rect', { x: bx, y: by, width: bw, height: bh, class: 'body pkg' }, body);
+        api.el('path', { d: 'M' + (bx + bw / 2 - 12) + ' ' + by + 'a12 12 0 0 0 24 0', class: 'thin' }, body);
+        api.el('rect', { x: bx + 24, y: by + 24, width: bw - 48, height: bh - 48, class: 'paper' }, body);
+        api.el('circle', { cx: bx + 12, cy: by + 12, r: 3.5, class: 'ink' }, body);
+        api.el('rect', { x: D2.x, y: D2.y, width: D2.w, height: D2.h, class: 'paper die' }, top);
+        NARROW.l.forEach(function (nm, i) { pin(api, L, 'l', bx, by + 30 + i * p2, l2, nm, k++, 12.5, 27, E2, i); });
+        NARROW.r.forEach(function (nm, i) { pin(api, L, 'r', bx + bw, by + bh - 30 - i * p2, l2, nm, k++, 12.5, 27, E2, np - 1 - i); });
+        marking(api, api.g(top, { class: 'mark' }), D2, true);
+      }
+    }
+  });
+
+  LIVE.watch(document.querySelector('#fig .canvas'), fit);
+  // the tour: each fact pin opens in turn, in pin order
+  LIVE.tour(fig, document.getElementById('fig'), function () {
+    return cur ? Object.keys(cur.pins).sort(function (a, b) { return cur.pins[a].num - cur.pins[b].num; }) : [];
+  });
+})();
+</script>
+</body>
+</html>

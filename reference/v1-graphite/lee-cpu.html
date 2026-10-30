@@ -1,0 +1,356 @@
+<title>lee.sh CPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one full-screen scene with the CPU centred. Facts about Lee float all around it, each wired to a pin.
+   Traces stop at a via before they would run under any text. Narrow screens: chip on top, facts listed below on a left bus. */
+:root {
+  --bg: #0b0d10;          /* graphite, not pure black */
+  --bg-lift: #13171c;
+  --chip: #11151a;
+  --ink: #c3ccd5;
+  --ink-dim: #5f6a76;
+  --glow: #ffb547;        /* amber trace glow */
+  --text: #eef1f4;
+  --muted: #7d8792;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; background: var(--bg); color: var(--text); }
+body { margin: 0; font-family: var(--sans); overflow: hidden; }
+
+.scene { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, var(--bg-lift), var(--bg) 70%); }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#far { filter: blur(7px); opacity: .8; transform: scale(1.04); }
+#far .p { fill: none; stroke: var(--ink-dim); stroke-width: 3; }
+#far .f { fill: #10141a; stroke: var(--ink-dim); stroke-width: 3; }
+
+.tr { fill: none; stroke: var(--glow); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+.tr-glow { fill: none; stroke: var(--glow); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+.via { fill: var(--bg); stroke: var(--glow); stroke-width: 1.6; opacity: .7; }
+.pulse { fill: none; stroke: #ffe2a8; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 14 2000; animation: run linear infinite; }
+@keyframes run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2014; } }
+.wire { fill: none; stroke: var(--glow); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.wire-glow { fill: none; stroke: var(--glow); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .32; }
+.wire-pulse { fill: none; stroke: #fff0cc; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 12 3000; animation: run2 linear infinite; }
+@keyframes run2 { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -3012; } }
+.wpad { fill: var(--bg); stroke: var(--glow); stroke-width: 1.8; }
+
+.pin { stroke: var(--ink); stroke-width: 1.6; }
+.pkg { fill: var(--chip); stroke: var(--ink); stroke-width: 1.8; }
+.lid { fill: url(#sheen); stroke: var(--ink); stroke-width: 1.4; }
+.etch { font-family: var(--mono); fill: var(--text); }
+.etch.dim { fill: var(--muted); }
+#chip { filter: drop-shadow(0 0 22px rgba(255, 181, 71, .16)) drop-shadow(0 30px 40px rgba(0, 0, 0, .6)); }
+.breathe { animation: breathe 6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: .85; } }
+
+/* ---- floating facts ---- */
+.callout .bob { animation: bob 7s ease-in-out infinite; }
+.callout:nth-child(2) .bob { animation-duration: 8s; animation-delay: -2s; }
+.callout:nth-child(3) .bob { animation-duration: 6.5s; animation-delay: -4s; }
+.callout:nth-child(4) .bob { animation-duration: 7.5s; animation-delay: -1s; }
+.callout:nth-child(5) .bob { animation-duration: 8.5s; animation-delay: -3s; }
+.callout:nth-child(6) .bob { animation-duration: 6.8s; animation-delay: -5s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.ref { font: 600 10.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--glow); }
+.intro { margin: 8px 0 0; font: 500 clamp(15px, 1.3vw, 19px)/1.5 var(--sans); color: var(--text); text-wrap: pretty; }
+.k { display: block; font: 600 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.k b { color: var(--glow); font-weight: 600; margin-right: 8px; }
+.v { display: block; margin-top: 3px; font: 400 15.5px/1.45 var(--sans); color: var(--text); }
+.led { display: inline-block; width: 8px; height: 5px; background: #4fe08a; box-shadow: 0 0 8px #4fe08a; margin-right: 8px; vertical-align: 2px; }
+.conn { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  font: 600 13px var(--mono); text-decoration: none; padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center;
+  color: var(--glow); border: 1px solid rgba(255, 181, 71, .55); background: rgba(255, 181, 71, .06);
+}
+.btn:hover { background: rgba(255, 181, 71, .14); border-color: var(--glow); }
+.btn.primary { background: var(--glow); color: #1b1305; border-color: var(--glow); }
+.btn.primary:hover { background: #ffc66e; }
+.btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.anchor { position: absolute; left: -14px; top: 7px; width: 1px; height: 1px; }
+
+#wires { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+#wires .w { fill: none; stroke: var(--glow); stroke-width: 1.7; stroke-linejoin: round; }
+#wires .wg { fill: none; stroke: var(--glow); stroke-width: 6; stroke-linejoin: round; opacity: .3; filter: blur(3px); }
+#wires .wp { fill: none; stroke: #fff0cc; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 12 3000; animation: run2 linear infinite; }
+#wires .pad { fill: var(--bg); stroke: var(--glow); stroke-width: 1.6; }
+
+/* wide screens: each callout is placed by script beside its pad */
+@media (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .callout { position: fixed; z-index: 2; }
+  .callout[data-place="left"] { text-align: right; }
+  .callout .anchor { display: none; }
+}
+/* narrower screens: chip on top, facts below in a column fed by a bus on the left */
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  body { overflow-y: auto; }
+  .scene { position: absolute; height: 100vh; height: 100svh; }
+  .scene svg { transform: translateY(-27vh); }
+  #far { transform: translateY(-27vh) scale(1.04); }
+  #wires { position: absolute; height: max(100%, var(--doc-h, 100%)); }
+  .facts { position: absolute; left: 56px; right: 20px; top: 50vh; display: grid; gap: 14px; padding-bottom: 72px; z-index: 2; }
+  .callout { position: relative; }
+  .callout:first-child { margin-bottom: 8px; }
+  .callout:last-child { margin-top: 8px; }
+  .callout:last-child .anchor { top: 22px; }
+  .intro { font-size: 16.5px; }
+  .v { font-size: 14.5px; }
+  body .hint { display: none; }
+}
+.brand { position: fixed; z-index: 3; top: calc(22px + env(safe-area-inset-top, 0px)); left: 24px; font: 700 18px var(--mono); color: var(--glow); }
+.hint {
+  position: fixed; z-index: 3; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  font: 500 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.hint i { width: 1px; height: 28px; background: linear-gradient(var(--glow), transparent); animation: drip 2.4s ease-in-out infinite; }
+@keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .wire-pulse, #wires .wp { display: none; }
+  .breathe, .hint i, .callout .bob { animation: none; }
+}
+</style>
+
+<div class="scene" role="img" aria-label="Lee's CPU, etched with Lee, Senior Backend Engineer, Python, Django and PostgreSQL, with glowing traces running out to the rest of the board.">
+  <svg id="far" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect class="f" x="380" y="-120" width="840" height="46"></rect>
+    <rect class="f" x="380" y="-50" width="840" height="46"></rect>
+    <rect class="f" x="380" y="20" width="840" height="46"></rect>
+    <rect class="f" x="1240" y="330" width="420" height="560"></rect>
+    <circle class="p" cx="1450" cy="480" r="130"></circle>
+    <circle class="p" cx="1450" cy="760" r="130"></circle>
+    <rect class="f" x="-140" y="440" width="420" height="110"></rect>
+    <rect class="f" x="640" y="900" width="150" height="150"></rect>
+    <rect class="f" x="860" y="930" width="190" height="200"></rect>
+  </svg>
+  <svg id="near" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1d232a"></stop><stop offset=".45" stop-color="#151a20"></stop>
+        <stop offset=".55" stop-color="#1b2128"></stop><stop offset="1" stop-color="#12161b"></stop>
+      </linearGradient>
+      <radialGradient id="fade" cx="50%" cy="50%" r="62%"><stop offset="0.25" stop-color="#fff"></stop><stop offset="1" stop-color="#000"></stop></radialGradient>
+      <mask id="edgefade"><rect x="0" y="0" width="1600" height="1000" fill="url(#fade)"></rect></mask>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"></feGaussianBlur></filter>
+    </defs>
+    <g mask="url(#edgefade)">
+      <g id="glow" filter="url(#soft)" class="breathe"></g>
+      <g id="lines"></g><g id="pulses"></g><g id="vias"></g>
+    </g>
+    <g id="wired"></g>
+    <g id="chip">
+      <g id="pins"></g>
+      <rect class="pkg" x="650" y="350" width="300" height="300" rx="3"></rect>
+      <rect class="lid" x="690" y="390" width="220" height="220" rx="2"></rect>
+      <path d="M702 598 L702 580 L720 598 Z" fill="none" stroke="#c3ccd5" stroke-width="1.2"></path>
+      <text class="etch" x="800" y="486" text-anchor="middle" style="font-size: 64px; font-weight: 800; letter-spacing: .04em">LEE</text>
+      <text class="etch" x="800" y="514" text-anchor="middle" style="font-size: 11px; font-weight: 600; letter-spacing: .2em">SENIOR BACKEND ENGINEER</text>
+      <line x1="730" y1="530" x2="870" y2="530" stroke="#4a535d" stroke-width="1"></line>
+      <text class="etch dim" x="800" y="550" text-anchor="middle" style="font-size: 9px; letter-spacing: .16em">PYTHON · DJANGO · POSTGRESQL</text>
+      <text class="etch dim" x="800" y="590" text-anchor="middle" style="font-size: 8px; letter-spacing: .16em">LEE-5Y · BENGALURU · e3</text>
+      <g id="marks"></g>
+    </g>
+  </svg>
+</div>
+
+<svg id="wires" aria-hidden="true"></svg>
+
+<!-- The facts. data-side: which side of the chip feeds it. data-x/y: its pad, in board units (chip centre is 800, 500).
+     data-place: where the text sits relative to the pad. -->
+<section class="facts" aria-label="About Lee">
+  <div class="callout" data-side="t" data-x="585" data-y="214" data-place="above">
+    <div class="bob"><div class="ref">U1 · About me</div>
+    <p class="intro">I'm a backend engineer. I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.</p></div>
+  </div>
+  <div class="callout" data-side="l" data-x="440" data-y="440" data-place="left">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>P1</b>Core stack</span><span class="v">Python · Django · PostgreSQL · Redis</span></div>
+  </div>
+  <div class="callout" data-side="l" data-x="460" data-y="597" data-place="left">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>P2</b>Experience</span><span class="v">~5 years in backend engineering</span></div>
+  </div>
+  <div class="callout" data-side="r" data-x="1160" data-y="421" data-place="right">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>P3</b>Location</span><span class="v">Bengaluru, India</span></div>
+  </div>
+  <div class="callout" data-side="r" data-x="1140" data-y="562" data-place="right">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>P4</b>Status</span><span class="v"><span class="led" aria-hidden="true"></span>Open to senior backend roles</span></div>
+  </div>
+  <div class="callout" data-side="b" data-x="1010" data-y="784" data-place="below">
+    <span class="anchor"></span><div class="bob conn">
+      <a class="btn primary" href="#" target="_blank" rel="noopener">Résumé ↗</a>
+      <a class="btn" href="#contact">Contact</a>
+    </div>
+  </div>
+</section>
+
+<div class="brand">lee.sh</div>
+<div class="hint">Scroll<i></i></div>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var C = 800, M = 500, H = 150, N = 16, PIN = 14, RUN = 22;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var wide = matchMedia('(min-width: 1100px) and (min-aspect-ratio: 5/4)');
+  var near = document.getElementById('near');
+  var callouts = [].slice.call(document.querySelectorAll('.callout'));
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  function clear(id) { var g = document.getElementById(id); while (g.firstChild) g.removeChild(g.firstChild); return g; }
+  function toScreen(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM()); }
+  function toVB(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM().inverse()); }
+  function tAt(i) { return -H + 18 + i * ((2 * H - 36) / (N - 1)); }
+  var SIDES = { t: { ox: 0, oy: -1 }, b: { ox: 0, oy: 1 }, l: { ox: -1, oy: 0 }, r: { ox: 1, oy: 0 } };
+  function pinEnd(side, i) {
+    var s = SIDES[side], t = tAt(i);
+    return { x: s.ox ? C + s.ox * (H + PIN) : C + t, y: s.oy ? M + s.oy * (H + PIN) : M + t };
+  }
+
+  // a wired trace follows exactly the same path as every other trace (out, 45° fan, straight on),
+  // so it can never cross its neighbours. Pick the pin whose lane lands nearest the wanted pad,
+  // then snap the pad onto that lane.
+  function route(side, pad) {
+    var s = SIDES[side], best = 0, bd = 1e9;
+    for (var i = 0; i < N; i++) {
+      var lane = (s.ox ? M : C) + 1.9 * tAt(i), off = Math.abs(lane - (s.ox ? pad.y : pad.x));
+      if (off < bd) { bd = off; best = i; }
+    }
+    var t = tAt(best), a = pinEnd(side, best), spread = t * 0.9;
+    var x1 = a.x + s.ox * RUN, y1 = a.y + s.oy * RUN;
+    var x2 = x1 + (s.ox ? s.ox * Math.abs(spread) : spread), y2 = y1 + (s.oy ? s.oy * Math.abs(spread) : spread);
+    var end = s.ox ? [pad.x, y2] : [x2, pad.y];
+    return { pin: best, pts: [[a.x, a.y], [x1, y1], [x2, y2], end], pad: { x: end[0], y: end[1] } };
+  }
+  function d(pts) { return pts.map(function (p, k) { return (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' '); }
+
+  // where a segment first enters any keep-out rect (Liang–Barsky), as a 0..1 fraction, or null
+  function entry(p, q, rects) {
+    var best = null;
+    rects.forEach(function (r) {
+      var dx = q[0] - p[0], dy = q[1] - p[1], t0 = 0, t1 = 1;
+      var P = [-dx, dx, -dy, dy], Q = [p[0] - r.x0, r.x1 - p[0], p[1] - r.y0, r.y1 - p[1]], ok = true;
+      for (var i = 0; i < 4 && ok; i++) {
+        if (P[i] === 0) { if (Q[i] < 0) ok = false; }
+        else { var u = Q[i] / P[i]; if (P[i] < 0) { if (u > t1) ok = false; else if (u > t0) t0 = u; } else { if (u < t0) ok = false; else if (u < t1) t1 = u; } }
+      }
+      if (ok && (best === null || t0 < best)) best = t0;
+    });
+    return best;
+  }
+  function clip(pts, rects) {
+    var out = [pts[0]];
+    for (var k = 0; k < pts.length - 1; k++) {
+      var p = pts[k], q = pts[k + 1], t = entry(p, q, rects);
+      if (t !== null) {
+        var len = Math.hypot(q[0] - p[0], q[1] - p[1]), back = len ? Math.min(t, 10 / len) : 0;
+        var u = Math.max(0, t - back);
+        out.push([p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u]);
+        return { pts: out, cut: true };
+      }
+      out.push(q);
+    }
+    return { pts: out, cut: false };
+  }
+
+  function buildTraces(opts) {
+    var seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    var glow = clear('glow'), lines = clear('lines'), pulses = clear('pulses'), vias = clear('vias'), pins = clear('pins'), marks = clear('marks'), wired = clear('wired');
+    var pinD = '';
+    Object.keys(SIDES).forEach(function (sid) {
+      var s = SIDES[sid];
+      for (var i = 0; i < N; i++) {
+        var t = tAt(i);
+        var px = s.ox ? C + s.ox * H : C + t, py = s.oy ? M + s.oy * H : M + t;
+        var ex = px + s.ox * PIN, ey = py + s.oy * PIN;
+        pinD += 'M' + px + ' ' + py + ' L' + ex + ' ' + ey + ' ';
+        var r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd(), r5 = rnd();
+        if (sid === opts.markSide) el('circle', { cx: ex, cy: ey, r: 0.5, fill: 'none', 'data-i': i }, marks);
+        if (opts.skip[sid + i]) continue;
+        if (opts.stubSides.indexOf(sid) >= 0) {
+          var len = 14 + r1 * 18, sx = ex + s.ox * len, sy = ey + s.oy * len;
+          el('path', { d: 'M' + ex + ' ' + ey + ' L' + sx + ' ' + sy, class: 'tr' }, lines);
+          el('circle', { cx: sx, cy: sy, r: 3.2, class: 'via' }, vias);
+          continue;
+        }
+        var run1 = RUN + r1 * 14, spread = t * 0.9;
+        var x1 = ex + s.ox * run1, y1 = ey + s.oy * run1;
+        var x2 = x1 + (s.ox ? s.ox * Math.abs(spread) : spread), y2 = y1 + (s.oy ? s.oy * Math.abs(spread) : spread);
+        var far = 900, stop = r2 < 0.38 ? 120 + r3 * 260 : far;
+        var pts = [[ex, ey], [x1, y1], [x2, y2], [x2 + s.ox * stop, y2 + s.oy * stop]];
+        var c = clip(pts, opts.keep), endVia = c.cut || stop < far;
+        var dd = d(c.pts);
+        el('path', { d: dd, class: 'tr-glow' }, glow);
+        el('path', { d: dd, class: 'tr' }, lines);
+        if (endVia) { var e = c.pts[c.pts.length - 1]; el('circle', { cx: e[0], cy: e[1], r: 4, class: 'via' }, vias); }
+        if (!reduce && r4 < 0.45 && !c.cut) {
+          var q = el('path', { d: dd, class: 'pulse' }, pulses);
+          q.style.animationDuration = (3.5 + r5 * 4).toFixed(2) + 's';
+          q.style.animationDelay = (-r5 * 6).toFixed(2) + 's';
+        }
+      }
+    });
+    el('path', { d: pinD, class: 'pin' }, pins);
+    (opts.wires || []).forEach(function (w, k) {
+      var dd = d(w.pts);
+      el('path', { d: dd, class: 'wire-glow' }, wired);
+      el('path', { d: dd, class: 'wire' }, wired);
+      if (!reduce) { var p = el('path', { d: dd, class: 'wire-pulse' }, wired); p.style.animationDuration = (2.8 + k * 0.4) + 's'; p.style.animationDelay = (-k * 0.8) + 's'; }
+      var e = w.pts[w.pts.length - 1];
+      el('rect', { x: e[0] - 5, y: e[1] - 5, width: 10, height: 10, class: 'wpad' }, wired);
+    });
+  }
+
+  // ---- wide: place each callout beside its pad, keep traces out from under the text ----
+  function layoutWide() {
+    clear('wires');
+    buildTraces({ stubSides: [], skip: {}, keep: [] });
+    var wires = [], skip = {}, keep = [];
+    callouts.forEach(function (c) {
+      c.style.left = c.style.top = c.style.width = '';
+      var side = c.dataset.side, pad = { x: +c.dataset.x, y: +c.dataset.y };
+      var r = route(side, pad); wires.push(r); skip[side + r.pin] = true; pad = r.pad;
+      var P = toScreen(pad.x, pad.y), place = c.dataset.place, gap = 16;
+      var maxW = place === 'left' ? P.x - gap - 24 : place === 'right' ? innerWidth - P.x - gap - 24 : 400;
+      c.style.width = Math.min(place === 'above' ? 400 : 340, maxW) + 'px';
+      var w = c.offsetWidth, h = c.offsetHeight, line = 7;   // the label line sits ~7px below the top
+      var left, top;
+      if (place === 'left') { left = P.x - gap - w; top = P.y - line; }
+      else if (place === 'right') { left = P.x + gap; top = P.y - line; }
+      else if (place === 'above') { left = Math.max(16, P.x + 10 - w); top = Math.max(64, P.y - gap - h); }
+      else { left = P.x - 10; top = P.y + gap; }
+      c.style.left = left + 'px'; c.style.top = top + 'px';
+      var tl = toVB(left - 14, top - 12), br = toVB(left + w + 14, top + h + 12);
+      keep.push({ x0: tl.x, y0: tl.y, x1: br.x, y1: br.y });
+    });
+    buildTraces({ stubSides: [], skip: skip, keep: keep, wires: wires });
+  }
+
+  // ---- narrow: facts in a column under the chip, fed from spaced left-side pins down a bus ----
+  function centre(e) { var r = e.getBoundingClientRect(); return { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY }; }
+  function layoutNarrow() {
+    callouts.forEach(function (c) { c.style.left = c.style.top = c.style.width = ''; });
+    var items = callouts.filter(function (c) { return c.querySelector('.anchor'); }), n = items.length, skip = {};
+    items.forEach(function (e, k) { skip['l' + (N - 1 - k * 3)] = true; });
+    buildTraces({ stubSides: ['l', 'b'], skip: skip, keep: [], markSide: 'l' });
+    document.documentElement.style.removeProperty('--doc-h');
+    document.documentElement.style.setProperty('--doc-h', document.documentElement.scrollHeight + 'px');
+    var svg = clear('wires'), marks = {};
+    [].forEach.call(document.querySelectorAll('#marks circle'), function (c) { marks[+c.getAttribute('data-i')] = centre(c); });
+    items.forEach(function (e, k) {
+      var a = marks[N - 1 - k * 3], b = centre(e.querySelector('.anchor')), laneX = 18 + (n - 1 - k) * 4;
+      var dd = 'M' + a.x + ' ' + a.y + ' H' + laneX + ' V' + b.y + ' H' + b.x;
+      el('path', { d: dd, class: 'wg' }, svg); el('path', { d: dd, class: 'w' }, svg);
+      if (!reduce) { var p = el('path', { d: dd, class: 'wp' }, svg); p.style.animationDuration = (2.6 + k * 0.45) + 's'; p.style.animationDelay = (-k * 0.7) + 's'; }
+      el('rect', { x: b.x - 4, y: b.y - 4, width: 8, height: 8, class: 'pad' }, svg);
+    });
+  }
+
+  function layout() { if (wide.matches) layoutWide(); else layoutNarrow(); }
+  layout();
+  addEventListener('resize', layout);
+  wide.addEventListener('change', layout);
+  if (document.fonts) document.fonts.ready.then(layout);
+})();
+</script>

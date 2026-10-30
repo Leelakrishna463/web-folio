@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lee's experience · LEE-5Y timing characteristics</title>
+<meta name="description" content="Lee's experience, drawn as an M.2 drive: every chip is a role, oldest by the screw, current by the connector.">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ds/ds.css">
+<link rel="stylesheet" href="ds/dark.css">
+<style>
+  :root { --glow-at: 58% 46%; }
+  /* the edge connector's gold pads, and the screw that holds the drive down in its notch */
+  svg .pads { fill: none; stroke: var(--ink); stroke-width: 3.4; }
+  svg .screw { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+  svg .standoff { fill: var(--shade); stroke: var(--ink-2); stroke-width: 1.4; }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="lee-board.html">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    <li><a href="lee-board.html"><b>1</b>Overview</a></li>
+    <li><a href="lee-cpu.html"><b>2</b>About</a></li>
+    <li><a href="lee-ram.html"><b>3</b>Skills</a></li>
+    <li><a href="lee-ssd.html" aria-current="page"><b>4</b>Experience</a></li>
+    <li><a href="lee-gpu.html"><b>5</b>Projects</a></li>
+    <li><a href="lee-nic.html"><b>6</b>Contact</a></li>
+  </ul></nav>
+  <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>
+
+<main class="stage">
+  <section class="intro" aria-labelledby="what">
+    <h1 id="what">Experience</h1>
+    <p class="role">Three roles, [2019] to now</p>
+    <p class="lede">Where I've worked, stored oldest to newest. The data flows toward the present, and on to the CPU.</p>
+    <p class="more">The oldest role sits by the screw; the current one sits on the controller, next to the connector.</p>
+    <p class="hint">Hover, tab or tap a chip to read the role.</p>
+  </section>
+  <figure id="fig" data-label="Lee's experience drawn as an M.2 drive wired to Lee's CPU. Each chip is a role: company, title, years and one result.">
+    <div class="canvas"></div>
+    <p class="sr" aria-live="polite" id="live"></p>
+    <ul class="facts">
+      <li>[Senior Software Engineer], [Company], [2023] to now: [Led X: cut p95 latency of Y API from 800 ms to 120 ms]</li>
+      <li>[Software Engineer], [Company], [2021] to [2023]: [Built a feature or migration with a measurable result]</li>
+      <li>[Backend Developer], [Company], [2019] to [2021]: [What you shipped and the result, e.g. built X, cutting Y by Z%]</li>
+    </ul>
+  </figure>
+</main>
+
+<script src="ds/ds.js"></script>
+<script src="ds/live.js"></script>
+<script>
+(function () {
+  // oldest first; the last one is the current role and sits on the controller. lit: how brightly its chip glows
+  var ROLES = [
+    { key: 'r1', kind: 'NAND', co: '[Company]', title: '[Backend Developer]', from: '[2019]', to: '[2021]', lit: 1, impact: '[What you shipped and the result, e.g. built X, cutting Y by Z%]' },
+    { key: 'r2', kind: 'NAND', co: '[Company]', title: '[Software Engineer]', from: '[2021]', to: '[2023]', lit: 2, impact: '[Built a feature or migration with a measurable result]' },
+    { key: 'r3', kind: 'CTRL', co: '[Company]', title: '[Senior Software Engineer]', from: '[2023]', to: 'NOW', lit: 3, impact: '[Led X: cut p95 latency of Y API from 800 ms to 120 ms]' }
+  ];
+  var live = document.getElementById('live');
+  var cur = null;   // { api, tips layer, chips, mode, viewBox, fit } for the current build
+  function years(r) { return r.from + ' – ' + r.to; }
+
+  // one chip, lettered with the role; probed, a lead shoots out of its top edge (bottom edge for the top chip on small screens)
+  function chip(api, parent, r, x, y, w, h, down, E, n) {
+    var now = r.to === 'NOW';
+    var g = api.probe(parent, r.key, { label: r.title + ' at ' + r.co + ', ' + years(r) + '. ' + r.impact, pad: 2 });
+    g.classList.add('l' + r.lit);
+    var cx = x + w / 2, ly = down ? y + h + 5 : y - 5;
+    api.el('path', { d: 'M' + cx + ' ' + ly + 'v' + (down ? E : -E), class: 'ext', 'stroke-dasharray': E, 'stroke-dashoffset': E }, g);
+    api.chip(g, { x: x, y: y, w: w, h: h, pins: now ? 'tblr' : 'tb', pitch: 8, len: 4 });
+    var tx = x + 16, yy = y + 28;
+    api.text(g, tx, yy, r.kind + ' · ' + years(r), { size: 11, cls: 'lab in' }); yy += 30;
+    api.text(g, tx, yy, r.co, { size: 19 }); yy += 22;
+    api.text(g, tx, yy, r.title, { size: 13, cls: 'lab in' }); yy += 12;
+    api.el('path', { d: 'M' + tx + ' ' + yy + 'H' + (x + w - 16), class: 'thin in' }, g); yy += 18;
+    LIVE.wrap(r.impact, n).forEach(function (l) { api.text(g, tx, yy, l, { size: 12, cls: 'mk' }); yy += 16; });
+    if (now) api.text(g, x + w - 16, y + 28, 'CURRENT', { size: 10.5, cls: 'lt', anchor: 'end' });
+    cur.chips[r.key] = { r: r, end: [cx, down ? ly + E : ly - E], down: down };
+  }
+
+  // the screw in the notch: a standoff under the board, a pan head with a cross slot
+  function screw(api, g, x, y) {
+    api.el('circle', { cx: x, cy: y, r: 16, class: 'standoff' }, g);
+    api.el('circle', { cx: x, cy: y, r: 10, class: 'screw' }, g);
+    api.el('path', { d: 'M' + (x - 5) + ' ' + y + 'h10M' + x + ' ' + (y - 5) + 'v10', class: 'ln' }, g);
+  }
+  // a data-valid segment, the way timing diagrams draw a bus: a long hexagon, pointed at both ends
+  function hex(x0, x1, y, h) {
+    var m = h / 2, s = 8;
+    return 'M' + x0 + ' ' + y + 'L' + (x0 + s) + ' ' + (y - m) + 'H' + (x1 - s) + 'L' + x1 + ' ' + y + 'L' + (x1 - s) + ' ' + (y + m) + 'H' + (x0 + s) + 'Z';
+  }
+
+  function show(key) {
+    var P = key && cur.chips[key];
+    if (!P) { while (cur.tips.firstChild) cur.tips.removeChild(cur.tips.firstChild); live.textContent = ''; return; }
+    var r = P.r, narrow = cur.mode === 'narrow';
+    LIVE.card(cur.api, cur.tips, {
+      end: P.end, dir: P.down ? 'd' : 'u', W: narrow ? 220 : 290, narrow: narrow, vb: cur.vb,
+      title: r.co, tag: r.to === 'NOW' ? 'CURRENT' : years(r),
+      rows: [{ small: r.kind + ' · ' + years(r) }, { text: r.title + '.' }, { small: 'RESULT' }, { text: r.impact }]
+    });
+    live.textContent = r.title + ' at ' + r.co + ', ' + years(r) + '. Result: ' + r.impact;
+  }
+
+  var fig = DS.figure({
+    el: '#fig', wide: [1000, 740], narrow: [360, 950], narrowAt: 620,
+    onShow: function (o, key) { if (cur) show(o ? key : null); },
+    build: function (api, mode) {
+      var svg = api.svg, back = api.g(svg), base = api.g(svg), nets = api.g(svg), parts = api.g(svg), tim = api.g(svg), tips = api.g(svg);
+      cur = { api: api, tips: tips, chips: {}, mode: mode, vb: mode === 'wide' ? [1000, 740] : [360, 950], fit: null };
+      if (mode === 'wide') {
+        // the rest of the board: RAM above, the CPU at the right edge (sliding to hug it), GPU and NIC peeking up from below
+        var B = LIVE.board(api, back), east = api.g(back);
+        B.ram(110, 50, 440); B.gpu(70, 640, 280, 200); B.nic(420, 650, 240, 130);
+        var cpu = B.cpu(850, 40, 660, east);
+        var X0 = 20, X1 = 760, Y0 = 180, Y1 = 460, rr = 14, my = (Y0 + Y1) / 2;
+        // the drive: screw notch on the left, M-key edge connector on the right
+        api.el('path', { d: 'M' + X0 + ' ' + Y0 + 'H' + X1 + 'V' + Y1 + 'H' + X0 + 'V' + (my + rr) + 'A' + rr + ' ' + rr + ' 0 0 0 ' + X0 + ' ' + (my - rr) + 'Z', class: 'paper pcb' }, base);
+        // the M.2 edge connector, keyed, and the socket on the board just past its tip
+        LIVE.fingers(api, base, { x: X1, y: Y0 + 10, len: Y1 - Y0 - 20, d: 22, side: 'r', key: my - 39 - Y0 - 10, pitch: 9 });
+        api.el('rect', { x: X1 + 14, y: Y0 + 4, width: 18, height: Y1 - Y0 - 8, class: 'body' }, base);
+        screw(api, base, X0, my);
+        api.text(base, X0 + 34, Y1 - 12, 'M.2 2280 · NVMe · EXPERIENCE', { size: 10.5, cls: 'num' });
+        var cs = [[56, 210], [290, 210], [524, 200]];
+        ROLES.forEach(function (ro, i) { chip(api, parts, ro, cs[i][0], Y0 + 34, cs[i][1], 186, false, 24, Math.floor((cs[i][1] - 32) / 6.4)); });
+        // NAND → controller → connector: lights with the role it carries
+        api.net(nets, [[161, Y0 + 30], [161, Y0 + 16], [624, Y0 + 16], [624, Y0 + 30]], 'r1', { r: 5 });
+        api.net(nets, [[290 + 210 + 4, Y0 + 127], [524 - 4, Y0 + 127]], 'r2');
+        api.net(nets, [[524 + 200 + 4, my + 20], [X1 - 14, my + 20]], 'r1 r2 r3');
+        // the connector's lanes run on into the CPU, each to its own pin (none at the M-key notch)
+        var lanes = [], ys = [210, 232, 254, 298, 320, 342, 364, 386, 408, 430];
+        ys.forEach(function (y, i) {
+          lanes.push([y, LIVE.trace(api, nets, (i * 7) % 10, i % 2 === 1), api.el('path', { class: 'pin' }, nets)]);
+        });
+        // the timing diagram, aligned to the chips: one data-valid segment per role, lit with its chip, then the year ruler
+        var hy = 510, ty = 566, tx = [cs[0][0], cs[1][0], cs[2][0], cs[2][0] + cs[2][1]];
+        api.text(tim, 0, hy + 4, 'ROLE', { size: 11, cls: 'num' });
+        api.text(tim, 0, ty + 4, 'YEAR', { size: 11, cls: 'num' });
+        api.el('path', { d: 'M' + (tx[0] - 26) + ' ' + hy + 'H' + tx[0] + 'M' + tx[3] + ' ' + hy + 'H' + (tx[3] + 26), class: 'thin' }, tim);
+        tx.forEach(function (x) { api.el('path', { d: 'M' + x + ' ' + (Y1 + 8) + 'V' + (ty - 8), class: 'dash' }, tim); });
+        ROLES.forEach(function (ro, i) {
+          api.net(tim, hex(tx[i] + 2, tx[i + 1] - 2, hy, 28), ro.key).style.fill = 'none';
+          api.text(tim, (tx[i] + tx[i + 1]) / 2, hy, ro.title, { size: 12, cls: 'lab', anchor: 'middle', mid: true });
+        });
+        api.el('path', { d: 'M' + tx[0] + ' ' + ty + 'H' + (tx[3] + 30) + 'm-8 -5l8 5-8 5', class: 'ln' }, tim);
+        [ROLES[0].from, ROLES[1].from, ROLES[2].from, 'NOW'].forEach(function (yv, i) {
+          api.el('path', { d: 'M' + tx[i] + ' ' + (ty - 5) + 'v10', class: 'ln' }, tim);
+          api.text(tim, tx[i], ty + 26, yv, { size: 12, cls: i === 3 ? 'lt' : 'num', anchor: 'middle' });
+        });
+        api.text(tim, tx[0], ty + 58, 'Time runs left to right, toward the connector and the CPU.', { size: 12, cls: 'num' });
+        cur.fit = function () {
+          var e = LIVE.edge(svg); if (!e) return;
+          var dx = Math.max(0, e.right - 1070);
+          east.setAttribute('transform', 'translate(' + dx.toFixed(1) + ' 0)');
+          // each lane leaves the socket and ends on its own CPU pin, drawn sharp (the CPU sits blurred behind)
+          lanes.forEach(function (l) {
+            l[1].set([[X1 + 32, l[0]], [840 + dx, l[0]]]);
+            l[2].setAttribute('d', 'M' + (840 + dx) + ' ' + l[0] + 'h12');
+          });
+        };
+        cur.fit();
+      } else {
+        // narrow: the drive stands upright, screw at the bottom, connector at the top; its lanes run up to vias short of the intro
+        var nx0 = 30, nx1 = 330, ny0 = 60, ny1 = 730, r2 = 12, mx = (nx0 + nx1) / 2;
+        api.el('path', { d: 'M' + nx0 + ' ' + ny0 + 'H' + nx1 + 'V' + ny1 + 'H' + (mx + r2) + 'A' + r2 + ' ' + r2 + ' 0 0 0 ' + (mx - r2) + ' ' + ny1 + 'H' + nx0 + 'Z', class: 'paper pcb' }, base);
+        LIVE.fingers(api, base, { x: nx0 + 10, y: ny0, len: nx1 - nx0 - 20, d: 14, side: 't', key: mx - 35 - nx0 - 10, pitch: 8 });
+        api.el('rect', { x: nx0 + 4, y: ny0 - 22, width: nx1 - nx0 - 8, height: 13, class: 'body' }, base);   // its M.2 socket
+        screw(api, base, mx, ny1);
+        for (var k = 0; k < 8; k++) {
+          var lx = nx0 + 40 + k * 32;
+          api.el('path', { d: 'M' + lx + ' ' + (ny0 - 22) + 'V10', class: 'trace' }, nets);
+          api.el('circle', { cx: lx, cy: 10, r: 3.5, class: 'via' }, nets);
+        }
+        var order = [ROLES[2], ROLES[1], ROLES[0]], ch = 186, cg = 34;
+        order.forEach(function (ro, i) { chip(api, parts, ro, nx0 + 16, ny0 + 26 + i * (ch + cg), nx1 - nx0 - 32, ch, i === 0, 16, 36); });
+        api.net(nets, [[mx + 60, ny0 + 26 + 2 * (ch + cg) - 6], [mx + 60, ny0 + 26 + ch + cg + ch + 6]], 'r1', { square: true });
+        api.net(nets, [[mx + 60, ny0 + 26 + ch + cg - 6], [mx + 60, ny0 + 26 + ch + 6]], 'r1 r2', { square: true });
+        api.el('path', { d: 'M14 ' + (ny1 - 10) + 'V' + (ny0 + 10) + 'm-5 8l5-8 5 8', class: 'ln' }, tim);
+        api.text(tim, 14, ny0 - 4, 'NOW', { size: 11, cls: 'lt', anchor: 'middle' });
+      }
+    }
+  });
+  LIVE.watch(document.querySelector('#fig .canvas'), function () { if (cur && cur.fit) cur.fit(); });
+  LIVE.tour(fig, document.getElementById('fig'), function () { return cur ? Object.keys(cur.chips).sort() : []; });
+})();
+</script>
+</body>
+</html>

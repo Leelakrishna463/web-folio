@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lee · Senior Backend Engineer (LEE-5Y datasheet)</title>
+<meta name="description" content="Lee, a senior backend engineer in Bengaluru (Python, Django, PostgreSQL), drawn as a motherboard: every part is a section, and every part connects only to the CPU.">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ds/ds.css">
+<link rel="stylesheet" href="ds/dark.css">
+<style>
+  :root { --glow-at: 64% 52%; }
+  .intro .status { display: inline-flex; align-items: center; gap: 10px; margin: 22px 0 0; padding: 8px 12px; border: 1px solid var(--rule);
+    font: 600 14px/1.3 var(--font); color: var(--ink); }
+  .intro .status i { width: 9px; height: 9px; background: var(--ok); flex: none; animation: en 2.4s ease-in-out infinite; }
+  .intro .status span { color: var(--ink-2); font-weight: 500; }
+  svg .tag { fill: var(--ink); }
+  svg .trace { stroke-width: 1.5; }
+  svg .net.live { stroke-width: 1.8; }
+  /* a lit bus transmits, flowing from the part into the CPU: each lane carries one bit of the byte on the wire, so every
+     wavefront that crosses the bundle is one ASCII byte, L E E; the packets glow, and fade in rather than snapping on */
+  svg .net.over { stroke: none; }   /* unlit, the copper beneath shows; lit, the net glows over it */
+  /* one hue, three lightness steps, so the signal reads as the same amber light as the board, never as a paler white:
+     resting copper (ink-2) < a lit lane, the carrier (deeper amber) < the packets riding it (full amber, glowing) */
+  svg .net.over.live { stroke: color-mix(in oklab, var(--neon) 78%, var(--ground)); }
+  svg .bits { stroke: var(--neon); stroke-width: 3; stroke-linecap: butt; transition: opacity .2s cubic-bezier(0.23, 1, 0.32, 1); }
+  svg .bits.live { animation-direction: reverse;
+    filter: drop-shadow(0 0 1.5px var(--neon)) drop-shadow(0 0 5px color-mix(in oklab, var(--neon) 60%, transparent)); }
+  svg .tag .des { fill: var(--ink-2); font-weight: 600; }
+  /* the board is the page's figure: give it the width, keep the intro to a readable column */
+  @media (min-width: 900px) {
+    .stage { grid-template-columns: fit-content(27rem) minmax(0, 1fr); }
+    .intro .role { max-width: 26ch; }
+    .stage .canvas { padding-block: 14px 6px; }   /* the board's top labels clear the header rule */
+  }
+  .intro .hint { text-wrap: pretty; }
+  /* hovering a part lifts it with a glow around its edge; it keeps its own colours rather than inverting */
+  svg .pr { transition: filter .2s ease-out; }
+  svg .pr.on { filter: drop-shadow(0 0 2px var(--neon)) drop-shadow(0 0 12px color-mix(in oklab, var(--neon) 55%, transparent)); }
+  svg .pr.on .body { fill: var(--shade); }
+  svg .pr.on .paper { fill: var(--paper); }
+  svg .pr.on .lt, svg .pr.on .mk, svg .pr.on text.in, svg .pr.on .lab.in, svg .pr.on .lab.out, svg .pr.on .ink.in { fill: var(--ink); }
+  svg .pr.on .thin.in, svg .pr.on .ln.in, svg .pr.on .pin { stroke: var(--ink); }
+  svg .pr.on .fill, svg .pr.on .tagbg { fill: transparent; }
+  /* the CPU stays lit, solid amber, hovered or not */
+  svg .pr.lit .body { fill: var(--ink); }
+  svg .pr.lit .lt, svg .pr.lit .mk, svg .pr.lit text.in, svg .pr.lit .lab.in, svg .pr.lit .ink.in { fill: var(--ground); }
+  svg .pr.lit .thin.in { stroke: var(--ground); }
+  @media (prefers-reduced-motion: reduce) { svg .pr { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .intro .status i { animation: none; } }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="lee-board.html">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    <li><a href="lee-board.html" aria-current="page"><b>1</b>Overview</a></li>
+    <li><a href="lee-cpu.html"><b>2</b>About</a></li>
+    <li><a href="lee-ram.html"><b>3</b>Skills</a></li>
+    <li><a href="lee-ssd.html"><b>4</b>Experience</a></li>
+    <li><a href="lee-gpu.html"><b>5</b>Projects</a></li>
+    <li><a href="lee-nic.html"><b>6</b>Contact</a></li>
+  </ul></nav>
+  <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>
+
+<main class="stage">
+  <section class="intro" aria-labelledby="who">
+    <h1 id="who">LEE-5Y</h1>
+    <p class="role">Senior backend engineer with Python, Django and PostgreSQL</p>
+    <p class="lede">I'm Lee, a backend engineer. I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.</p>
+    <p class="status"><i aria-hidden="true"></i>Status: Active <span>Open to senior backend roles</span></p>
+    <ul class="quick">
+      <li>~5 years building backend systems</li>
+      <li>Core stack: Python, Django, PostgreSQL, Redis</li>
+      <li>Bengaluru, India · [on-site or remote]</li>
+    </ul>
+    <div class="actions">
+      <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+      <a class="btn" href="lee-nic.html">Email Lee</a>
+    </div>
+    <p class="hint">Every part connects only to the CPU. Hover a part to read it; click to open its page.</p>
+  </section>
+  <figure id="fig" data-label="The whole board: Lee's CPU in the centre, wired to RAM for skills, an SSD for experience, a graphics card for projects and a network card for contact.">
+    <div class="canvas"></div>
+    <p class="sr" aria-live="polite" id="live"></p>
+    <ul class="facts">
+      <li><a href="lee-cpu.html">U1, CPU: About me</a></li>
+      <li><a href="lee-ram.html">U2, RAM: Skills</a></li>
+      <li><a href="lee-ssd.html">U3, SSD: Experience</a></li>
+      <li><a href="lee-gpu.html">U4, graphics card: Projects</a></li>
+      <li><a href="lee-nic.html">U5, network card: Contact</a></li>
+    </ul>
+  </figure>
+</main>
+
+<script src="ds/ds.js"></script>
+<script src="ds/live.js"></script>
+<script>
+(function () {
+  var PROJ = ['[PROJECT-ONE]', '[PROJECT-TWO]', '[PROJECT-THREE]'];
+  var RAM = [['PYTHON', 'SQL', 'C++', 'LANG'], ['DJANGO', 'DRF', 'CELERY', 'FRMWK'], ['POSTGRESQL', 'REDIS', null, 'DATA'], ['[AWS]', '[DOCKER]', '[NGINX]', 'INFRA']];
+  var ROLES = [['[COMPANY]', '[2019–21]'], ['[COMPANY]', '[2021–23]'], ['[COMPANY]', 'NOW']];
+  // each part: its page, what it says, and how it reads aloud
+  var PAGES = {
+    u1: { href: 'lee-cpu.html', title: 'ABOUT ME', tag: 'U1 · CPU', text: 'Lee, Senior Backend Engineer: Python, Django, PostgreSQL, Bengaluru.', label: 'U1, CPU: About me. Lee, Senior Backend Engineer. Opens page 2.' },
+    u2a: { href: 'lee-ram.html', title: 'LANGUAGES', tag: 'U2 · DIMM A1', text: 'Python, SQL, C++. One of 4 skill modules.', label: 'U2, RAM, Languages module: Python, SQL, C++. Opens Skills, page 3.' },
+    u2b: { href: 'lee-ram.html', title: 'FRAMEWORKS', tag: 'U2 · DIMM A2', text: 'Django, DRF, Celery. One of 4 skill modules.', label: 'U2, RAM, Frameworks module: Django, DRF, Celery. Opens Skills, page 3.' },
+    u2c: { href: 'lee-ram.html', title: 'DATA', tag: 'U2 · DIMM B1', text: 'PostgreSQL, Redis, and a free socket for the next skill.', label: 'U2, RAM, Data module: PostgreSQL, Redis, and a free socket. Opens Skills, page 3.' },
+    u2d: { href: 'lee-ram.html', title: 'INFRA', tag: 'U2 · DIMM B2', text: '[AWS], [Docker], [Nginx]. One of 4 skill modules.', label: 'U2, RAM, Infra module: AWS, Docker, Nginx. Opens Skills, page 3.' },
+    u3: { href: 'lee-ssd.html', title: 'EXPERIENCE', tag: 'U3 · SSD', text: 'Three roles stored oldest to newest; the current one sits on the controller.', label: 'U3, SSD: Experience. Three roles, oldest to newest. Opens page 4.' },
+    u4: { href: 'lee-gpu.html', title: 'PROJECTS', tag: 'U4 · GPU', text: 'Three projects, each rendered into its own memory chip: problem, fix, result.', label: 'U4, graphics card: Projects. Three projects. Opens page 5.' },
+    u5: { href: 'lee-nic.html', title: 'CONTACT', tag: 'U5 · NIC', text: 'One channel: email. Every message gets a reply.', label: 'U5, network card: Contact by email. Opens page 6.' }
+  };
+  var live = document.getElementById('live'), touch = matchMedia('(hover: none)');
+  var cur = null;   // { api, tips layer, parts, mode, viewBox } for the current build
+
+  // a part is a link to its page; probed, a lead shoots out from (x, y) and its box opens that way
+  function P(api, parent, key) { var o = PAGES[key]; return api.probe(parent, key, { href: o.href, label: o.label, pad: 6 }); }
+  function lead(api, g, key, x, y, dir, E) {
+    var ox = dir === 'r' ? 1 : dir === 'l' ? -1 : 0, oy = dir === 'u' ? -1 : dir === 'd' ? 1 : 0;
+    api.el('path', { d: 'M' + x + ' ' + y + 'l' + ox * E + ' ' + oy * E, class: 'ext', 'stroke-dasharray': E, 'stroke-dashoffset': E }, g);
+    cur.parts[key] = { end: [x + ox * E, y + oy * E], dir: dir };
+  }
+  function tag(api, parent, x, y, des, name, anchor) {
+    var t = api.text(parent, x, y, '', { size: 16, cls: 'lt tag', anchor: anchor });
+    api.el('tspan', { class: 'des' }, t).textContent = des + ' · ';
+    api.el('tspan', {}, t).textContent = name;
+  }
+
+  // ---- the parts, drawn small but true to form ----
+  function cpu(api, parent, cx, cy, s, n) {
+    var g = P(api, parent, 'u1'), h = s / 2, pitch = (s - 32) / (n - 1);
+    g.classList.add('l3', 'mark', 'lit');
+    api.pins(g, 't', cx - h + 16, cy - h, n, pitch, 8); api.pins(g, 'b', cx - h + 16, cy + h, n, pitch, 8);
+    api.pins(g, 'l', cx - h, cy - h + 16, n, pitch, 8); api.pins(g, 'r', cx + h, cy - h + 16, n, pitch, 8);
+    api.el('rect', { x: cx - h, y: cy - h, width: s, height: s, class: 'body' }, g);
+    api.el('rect', { x: cx - h + 10, y: cy - h + 10, width: s - 20, height: s - 20, class: 'thin in' }, g);
+    api.el('path', { d: 'M' + (cx - h + 16) + ' ' + (cy + h - 16) + 'v-9l9 9z', class: 'ink in' }, g);
+    var k = s / 140;
+    // package marking, as etched on the lid
+    api.lines(g, cx, cy - 20 * k, [['LEE', 36 * k, 'lt', -6 * k], ['SR BACKEND ENGINEER', 9.5 * k, 'lab in', 2 * k], ['PYTHON · DJANGO · PGSQL', 9 * k, 'lab in']], { lh: 1.3 });
+    return g;
+  }
+  function gpu(api, parent, x, y, w, h) {
+    var g = P(api, parent, 'u4');
+    api.el('rect', { x: x - 12, y: y - 8, width: 12, height: h + 16, class: 'paper' }, g);
+    api.el('rect', { x: x, y: y, width: w, height: h, class: 'paper pcb' }, g);
+    // its PCIe edge connector, keyed, seated in the slot the bus leaves from
+    var fx0 = x + w * 0.38, fx1 = x + w - 12;
+    LIVE.fingers(api, g, { x: fx0, y: y + h, len: fx1 - fx0, d: 8, side: 'b', key: 22, pitch: 5, snug: true });
+    // the socket's housing is thicker and grips the tips of the fingers, so only their roots show; its outer face, where the bus lands, stays put
+    api.el('rect', { x: fx0 - 4, y: y + h + 6, width: fx1 - fx0 + 8, height: 8, class: 'body' }, g);
+    var ds = Math.min(h - 46, 100), dx = x + 22, dy = y + (h - ds) / 2;
+    api.chip(g, { x: dx, y: dy, w: ds, h: ds, pins: 'tblr', pitch: 7, len: 4 });
+    api.text(g, dx + ds / 2, dy + ds / 2, 'GPU', { size: 20, anchor: 'middle', mid: true });
+    var vx = dx + ds + 30, vw = x + w - 14 - vx, vh = (h - 24 - 12) / 3;
+    PROJ.forEach(function (p, i) {
+      var vy = y + 12 + i * (vh + 6);
+      api.chip(g, { x: vx, y: vy, w: vw, h: vh, mark: false });
+      api.text(g, vx + vw / 2, vy + vh / 2, p, { size: 13, anchor: 'middle', mid: true });
+      // out from the GPU, across the gap and into the chip; every corner cut at 45°
+      var y0 = dy + ds / 2 + (i - 1) * 14, y1 = vy + vh / 2, x0 = dx + ds + 4, xm = (x0 + vx) / 2, sg = Math.sign(y1 - y0), c = Math.min(5, Math.abs(y1 - y0) / 2);
+      api.el('path', { d: api.d(sg ? [[x0, y0], [xm - c, y0], [xm, y0 + sg * c], [xm, y1 - sg * c], [xm + c, y1], [vx, y1]] : [[x0, y0], [vx, y1]]), class: 'thin' }, g);
+    });
+    return g;
+  }
+  function nic(api, parent, x, y, w, h) {
+    var g = P(api, parent, 'u5');
+    api.el('rect', { x: x + w, y: y - 8, width: 12, height: h + 16, class: 'paper' }, g);
+    api.el('rect', { x: x, y: y, width: w, height: h, class: 'paper pcb' }, g);
+    var jh = (h - 24) / 4 - 4;
+    for (var j = 0; j < 4; j++) {
+      var jy = y + 12 + j * (jh + 5);
+      api.el('rect', { x: x + w - 40, y: jy, width: 40, height: jh, class: 'body' }, g);
+      api.el('rect', { x: x + w - 36, y: jy + 4, width: 6, height: 4, class: 'led ok' }, g);
+      api.el('rect', { x: x + w - 10, y: jy + 4, width: 6, height: 4, class: 'led blink', style: 'animation-delay:-' + j * 0.8 + 's' }, g);
+    }
+    var cw = 110, ch = h - 44, cx = x + w - 40 - 30 - cw, cy = y + 22;
+    api.chip(g, { x: cx, y: cy, w: cw, h: ch, pins: 'tblr', pitch: 7, len: 4 });
+    api.lines(g, cx + cw / 2, cy + ch / 2 - 12, [['EMAIL', 18, 'lt'], ['ALWAYS LISTENING', 10, 'mk']], { lh: 1.5 });
+    api.chip(g, { x: x + 16, y: y + 18, w: cx - x - 44, h: h * 0.36, pins: 'tb', pitch: 7, len: 4 });
+    api.text(g, x + 16 + (cx - x - 44) / 2, y + 18 + h * 0.18, 'BUFFER', { size: 12, cls: 'mk', anchor: 'middle', mid: true });
+    // its edge connector sits on the back end, opposite the bracket, facing the CPU, seated in the slot the bus lands on
+    LIVE.fingers(api, g, { x: x, y: y + 16, len: h - 32, d: 8, side: 'l', key: (h - 32) * 0.3, pitch: 5, snug: true });
+    api.el('rect', { x: x - 14, y: y + 12, width: 8, height: h - 24, class: 'body' }, g);
+    return g;
+  }
+  // four sticks, slot on the left, each its own part (u2a to u2d, top to bottom); returns each stick's group, key and
+  // where its lines leave
+  var STICK = ['u2a', 'u2b', 'u2c', 'u2d'];
+  function ram(api, parent, x, y, w, sh, gap) {
+    var gs = [], ports = [];
+    RAM.forEach(function (st, i) {
+      var sy = y + i * (sh + gap), g = P(api, parent, STICK[i]);
+      gs.push(g);
+      api.el('rect', { x: x, y: sy, width: w, height: sh, class: 'paper pcb' }, g);
+      LIVE.fingers(api, g, { x: x, y: sy + 5, len: sh - 10, d: 6, side: 'l', pitch: 4 });
+      api.el('rect', { x: x - 11, y: sy - 2, width: 6.5, height: sh + 4, class: 'body' }, g);
+      var cw = (w - 72) / 3;
+      for (var c = 0; c < 3; c++) {
+        var cx = x + 10 + c * (cw + 4);
+        if (st[c]) { api.el('rect', { x: cx, y: sy + 5, width: cw, height: sh - 10, class: 'body' }, g); api.text(g, cx + cw / 2, sy + sh / 2, st[c], { size: Math.min(12, (cw - 8) / (st[c].length * 0.64)), anchor: 'middle', mid: true }); }
+        else { api.el('rect', { x: cx, y: sy + 5, width: cw, height: sh - 10, class: 'dash' }, g); api.text(g, cx + cw / 2, sy + sh / 2, 'FREE', { size: 11, cls: 'num', anchor: 'middle', mid: true }); }
+      }
+      api.text(g, x + w - 28, sy + sh / 2, st[3], { size: 10.5, cls: 'mk', anchor: 'middle', mid: true });
+      ports.push([x - 11, sy + sh / 2]);
+    });
+    return { gs: gs, ports: ports, x: x, y: y, w: w, sh: sh, gap: gap };
+  }
+  // flip: connector on the left, screw notch on the right; the current role always sits by the connector
+  function ssd(api, parent, x, y, w, h, flip) {
+    var g = P(api, parent, 'u3'), r = 9, sx = flip ? x + w : x;
+    api.el('path', { d: 'M' + sx + ' ' + y + 'H' + (flip ? x : x + w) + 'V' + (y + h) + 'H' + sx + 'V' + (y + h / 2 + r) + 'A' + r + ' ' + r + ' 0 0 ' + (flip ? 1 : 0) + ' ' + sx + ' ' + (y + h / 2 - r) + 'Z', class: 'paper pcb' }, g);
+    // its M.2 edge connector, keyed, seated in the socket the bus lands on
+    var ex = flip ? x : x + w;
+    LIVE.fingers(api, g, { x: ex, y: y + 6, len: h - 12, d: 8, side: flip ? 'l' : 'r', key: h * 0.35 - 6, pitch: 5 });
+    api.el('rect', { x: flip ? ex - 14 : ex + 6, y: y + 2, width: 8, height: h - 4, class: 'body' }, g);
+    var cw = (w - 40 - 16) / 3;
+    ROLES.forEach(function (ro, i) {
+      var cx = flip ? x + w - 22 - cw - i * (cw + 8) : x + 22 + i * (cw + 8);
+      api.chip(g, { x: cx, y: y + 9, w: cw, h: h - 18, mark: i === 2 });
+      var fs = Math.min(11.5, (cw - 18) / (ro[0].length * 0.64));
+      api.lines(g, cx + cw / 2, y + h / 2 - fs * 0.35, [[ro[0], fs, 'lt'], [ro[1], fs * 0.92, 'mk']], { lh: 1.35 });
+    });
+    return g;
+  }
+
+  // one bus line: it lights with its part (or the CPU), and now and then a blip of light runs along it
+  // the bit pattern lane k of an eight-lane bus carries: per byte of "LEE", a short packet if that byte's bit k is 1, a
+  // blank slot if it is 0, then a gap before the word repeats
+  var WORD = ['01001100', '01000101', '01000101'], SLOT = 16, PACKET = 9, GAP = 32;
+  function lane(b, k) {
+    var dash = [];
+    WORD.forEach(function (byte) { var on = byte.charAt(k) === '1' ? PACKET : 0; dash.push(on, SLOT - on); });
+    dash.push(0, GAP);
+    var len = WORD.length * SLOT + GAP;
+    b.setAttribute('stroke-dasharray', dash.join(' '));
+    b.style.setProperty('--bitlen', -len);
+    b.style.animationDuration = (len / 50).toFixed(2) + 's';   // 50 drawing units a second, constant
+  }
+
+  // the copper goes down first; the net (lit on hover) and its bits ride on top of it
+  function line(api, nets, pts, key, seed, inward, quiet, k) {
+    if (quiet) api.el('path', { d: api.d(pts), class: 'trace' }, nets);
+    else LIVE.trace(api, nets, seed, inward).set(pts);
+    var p = api.net(nets, pts, key + ' u1', { square: true });
+    p.classList.add('over');
+    if (k != null) lane(p.nextSibling, k);
+  }
+
+  function show(key) {
+    var P2 = key && cur.parts[key];
+    if (!P2) { while (cur.tips.firstChild) cur.tips.removeChild(cur.tips.firstChild); live.textContent = ''; return; }
+    var o = PAGES[key], narrow = cur.mode === 'narrow';
+    LIVE.card(cur.api, cur.tips, { end: P2.end, dir: P2.dir, W: narrow ? 220 : 280, narrow: narrow, vb: cur.vb, title: o.title, tag: o.tag,
+      rows: [{ text: o.text }, { act: touch.matches ? 'Tap again to open' : 'Click to open' }] });
+    live.textContent = o.label;
+  }
+
+  DS.figure({
+    el: '#fig', wide: [1000, 740], narrow: [360, 1010], narrowAt: 600,
+    onShow: function (o, key) { if (cur) show(o ? key : null); },
+    build: function (api, mode) {
+      var svg = api.svg, nets = api.g(svg), parts = api.g(svg), tips = api.g(svg);
+      cur = { api: api, tips: tips, parts: {}, mode: mode, vb: mode === 'wide' ? [1000, 740] : [360, 1010] };
+      if (mode === 'wide') {
+        // U1 in the middle, lit. The board turns about it: one bus shape, rotated a quarter turn for each side, so the four
+        // buses are identical. A bus leaves the middle four pins of its side, bends 45°, and runs straight into its part's
+        // socket; no trace turns a square corner. The GPU takes the left side, the NIC the top, the RAM the right, the SSD the bottom
+        var C = [500, 370], S = 160, n = 12, pitch = (S - 32) / (n - 1), CL = C[0] - S / 2 - 8, CT = C[1] - S / 2 - 8, CR = C[0] + S / 2 + 8;
+        var turn = function (q, pt) {   // a quarter turn clockwise about U1's centre, q times
+          var x = pt[0], y = pt[1];
+          for (var i = 0; i < q; i++) { var nx = C[0] - (y - C[1]), ny = C[1] + (x - C[0]); x = nx; y = ny; }
+          return [x, y];
+        };
+        // the bus as drawn for the left side, eight lanes from the middle eight pins. Leaving the pins they neck down at 45°
+        // from pin pitch to a tight bundle, the bundle runs out, turns up with a short 45° cut and rises straight into the
+        // GPU's slot. Each outer lane's cut is longer by B(2 - √2), exactly what keeps the lanes evenly spaced through the bend
+        var B = 6, SLOT = 214, NECK = CL - 8, XT = 340, C0 = 4;
+        var bus = [0, 1, 2, 3, 4, 5, 6, 7].map(function (k) {
+          var yp = C[1] + (k - 3.5) * pitch, yb = C[1] + (k - 3.5) * B, x = XT - k * B, c = C0 + k * B * (2 - Math.SQRT2);
+          return [[CL, yp], [NECK, yp], [NECK - Math.abs(yp - yb), yb], [x + c, yb], [x, yb - c], [x, SLOT]];
+        });
+        var g4 = gpu(api, parts, 94, 40, 340, 160);
+        var g5 = nic(api, parts, 670, 117.5, 316, 150);
+        var g3 = ssd(api, parts, 10, 510.5, 320, 74, false);
+        var rm = ram(api, parts, 730, 526, 256, 38, 10);
+        cpu(api, parts, C[0], C[1], S, n);
+        bus.forEach(function (b, k) {
+          var seed = k % 10, quiet = k % 2 === 1;
+          line(api, nets, b, 'u4', seed, k % 4 === 2, quiet, k);
+          line(api, nets, b.map(function (pt) { return turn(1, pt); }), 'u5', (seed + 3) % 10, k % 4 === 0, quiet, k);
+          line(api, nets, b.map(function (pt) { return turn(3, pt); }), 'u3', (seed + 6) % 10, k % 4 === 2, quiet, k);
+          // the RAM's bus arrives the same way, then peels off two lanes per stick at 45°, the outermost pair to the top stick
+          var r = b.map(function (pt) { return turn(2, pt); }), last = r[r.length - 1], c2 = 6;
+          var stick = 3 - (k >> 1), y = rm.ports[stick][1] + (k % 2 ? -3 : 3), port = [rm.ports[stick][0], y];
+          line(api, nets, r.concat([[last[0], y - c2], [last[0] + c2, y], port]), STICK[stick], (seed + 8) % 10, k % 4 === 0, quiet, k);
+        });
+        // where each part's box opens, and its plain-English name
+        lead(api, g4, 'u4', 180, 204, 'd', 22);
+        lead(api, g5, 'u5', 800, 272, 'd', 22);
+        lead(api, g3, 'u3', 180, 506, 'u', 22);
+        rm.gs.forEach(function (g, i) { lead(api, g, STICK[i], rm.x + rm.w, rm.y + i * (rm.sh + rm.gap) + rm.sh / 2, 'r', 10); });
+        lead(api, parts.lastChild, 'u1', C[0] - 60, CT - 2, 'u', 22);
+        tag(api, parts, 94, 26, 'U4', 'Projects');
+        tag(api, parts, 986, 104, 'U5', 'Contact', 'end');
+        tag(api, parts, 10, 614, 'U3', 'Experience');
+        tag(api, parts, 986, 730, 'U2', 'Skills', 'end');
+        // U1's name sits beside its top right pins, between the NIC above and the RAM's lanes below
+        tag(api, parts, CR + 14, 290, 'U1', 'About me');
+        api.text(parts, CR + 14, 307, 'the CPU: every part', { size: 12.5, cls: 'num' });
+        api.text(parts, CR + 14, 322, 'connects only here', { size: 12.5, cls: 'num' });
+      } else {
+        // narrow: U1 on top, parts stacked below, fed by one bus down the left edge
+        cpu(api, parts, 180, 92, 120, 8);
+        lead(api, parts.lastChild, 'u1', 180, 160, 'd', 14);
+        tag(api, parts, 180, 192, 'U1', 'About me', 'middle');
+        var n4 = gpu(api, parts, 44, 220, 300, 128);
+        lead(api, n4, 'u4', 194, 214, 'u', 14);
+        tag(api, parts, 344, 384, 'U4', 'Projects', 'end');
+        var n5 = nic(api, parts, 32, 404, 300, 108);
+        lead(api, n5, 'u5', 182, 398, 'u', 14);
+        tag(api, parts, 32, 540, 'U5', 'Contact');
+        var rm2 = ram(api, parts, 46, 566, 300, 28, 6);
+        rm2.gs.forEach(function (g, i) { lead(api, g, STICK[i], rm2.x + rm2.w, rm2.y + i * (rm2.sh + rm2.gap) + rm2.sh / 2, 'r', 8); });
+        tag(api, parts, 46, 712, 'U2', 'Skills');
+        ssd(api, parts, 40, 738, 292, 54, true);
+        lead(api, parts.lastChild, 'u3', 186, 732, 'u', 14);
+        tag(api, parts, 40, 812, 'U3', 'Experience');
+        // the middle left pins of U1 (k = 2..5) feed four lanes down the edge, each landing on its part's slot. The part that turns off
+        // first takes the innermost lane and the lowest pin, so no lane crosses another
+        var pin = function (k) { return 92 - 60 + 16 + k * (88 / 7); };
+        api.net(nets, [[112, pin(5)], [27, pin(5)], [27, 366], [180, 366], [180, 362]], 'u4 u1', { r: 6 });   // up into the GPU's slot
+        api.net(nets, [[112, pin(4)], [17, pin(4)], [17, 458], [18, 458]], 'u5 u1', { r: 6 });
+        rm2.ports.forEach(function (p, i) { api.net(nets, [[112, pin(3)], [12, pin(3)], [12, p[1]], p], STICK[i] + ' u1', { r: 6 }); });
+        api.net(nets, [[112, pin(2)], [7, pin(2)], [7, 765], [26, 765]], 'u3 u1', { r: 6 });
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

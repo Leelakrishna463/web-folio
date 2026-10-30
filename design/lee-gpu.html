@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lee's projects · LEE-5Y typical application</title>
+<meta name="description" content="Lee's projects, drawn as a graphics card: the GPU renders each project into its own memory chip.">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ds/ds.css">
+<link rel="stylesheet" href="ds/dark.css">
+<style>
+  :root { --glow-at: 56% 50%; }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="lee-board.html">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    <li><a href="lee-board.html"><b>1</b>Overview</a></li>
+    <li><a href="lee-cpu.html"><b>2</b>About</a></li>
+    <li><a href="lee-ram.html"><b>3</b>Skills</a></li>
+    <li><a href="lee-ssd.html"><b>4</b>Experience</a></li>
+    <li><a href="lee-gpu.html" aria-current="page"><b>5</b>Projects</a></li>
+    <li><a href="lee-nic.html"><b>6</b>Contact</a></li>
+  </ul></nav>
+  <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>
+
+<main class="stage">
+  <section class="intro" aria-labelledby="what">
+    <h1 id="what">Projects</h1>
+    <p class="role">Three projects shipped</p>
+    <p class="lede">Things I've built. The GPU renders each project into its own memory chip.</p>
+    <p class="more">Every chip reads the same way: the problem, what I did, and the result.</p>
+    <p class="hint">Hover, tab or tap a memory chip to read the project.</p>
+  </section>
+  <figure id="fig" data-label="Lee's projects drawn as a graphics card wired to Lee's CPU. The GPU renders each project into its own memory chip: problem, fix and result.">
+    <div class="canvas"></div>
+    <p class="sr" aria-live="polite" id="live"></p>
+    <ul class="facts">
+      <li>[project-one] (Django, Celery, Redis): [Slow checkout API]; [moved fan-out to Celery + Redis]; [impact metric]</li>
+      <li>[project-two] (PostgreSQL, DRF): [What was broken]; [what you changed]; [impact metric]</li>
+      <li>[project-three] (AWS, Docker): [What was broken]; [what you changed]; [impact metric]</li>
+    </ul>
+  </figure>
+</main>
+
+<script src="ds/ds.js"></script>
+<script src="ds/live.js"></script>
+<script>
+(function () {
+  var PROJ = [
+    { key: 'p1', name: '[project-one]', stack: 'Django · Celery · Redis', problem: '[Slow checkout API]', fix: '[Moved fan-out to Celery + Redis]', result: '[Impact metric]' },
+    { key: 'p2', name: '[project-two]', stack: 'PostgreSQL · DRF', problem: '[What was broken]', fix: '[What you changed]', result: '[Impact metric]' },
+    { key: 'p3', name: '[project-three]', stack: '[AWS] · [Docker]', problem: '[What was broken]', fix: '[What you changed]', result: '[Impact metric]' }
+  ];
+  var live = document.getElementById('live');
+  var cur = null;   // { api, tips layer, chips, mode, viewBox, fit } for the current build
+
+  // a memory chip holding one project; probed, a lead shoots out of its outer (right) end, clear of the chips stacked
+  // beside it, and its render path from the GPU lights
+  function vram(api, parent, p, i, x, y, w, h, narrow) {
+    var down = i === 0, E = narrow ? 8 : 12;
+    var g = api.probe(parent, p.key, { label: p.name + '. Problem: ' + p.problem + '. What I did: ' + p.fix + '. Result: ' + p.result, pad: 2 });
+    g.classList.add('l2');
+    var lx = x + w + 2, ly = y + h / 2;
+    api.el('path', { d: 'M' + lx + ' ' + ly + 'h' + E, class: 'ext', 'stroke-dasharray': E, 'stroke-dashoffset': E }, g);
+    api.chip(g, { x: x, y: y, w: w, h: h, pins: 'tb', pitch: 8, len: 4 });
+    api.text(g, x + 16, y + 24, 'VRAM_0' + (i + 1), { size: 10.5, cls: 'lab in' });
+    api.text(g, x + w - 16, y + 24, p.stack.toUpperCase(), { size: 10.5, cls: 'lab in', anchor: 'end' });
+    api.text(g, x + 16, y + h / 2 + 6, p.name, { size: narrow ? 18 : 21 });
+    api.text(g, x + 16, y + h - 20, '→ ' + p.result, { size: 13, cls: 'mk' });
+    cur.chips[p.key] = { p: p, end: [lx + E, ly], down: down };
+  }
+  // the GPU itself, lit from inside
+  function gpu(api, parent, x, y, s) {
+    var g = api.g(parent, { class: 'l3 mark' });
+    api.chip(g, { x: x, y: y, w: s, h: s, pins: 'tblr', pitch: 9, len: 5 });
+    api.el('rect', { x: x + s * 0.2, y: y + s * 0.2, width: s * 0.6, height: s * 0.6, class: 'thin' }, g);
+    api.lines(g, x + s / 2, y + s / 2 - 14, [['GPU', s * 0.16, 'lt', -2], ['LEE-RENDER', s * 0.052, 'lab'], ['3 PROJECTS SHIPPED', s * 0.045, 'num']], { lh: 1.45 });
+  }
+
+  function show(key) {
+    var P = key && cur.chips[key];
+    if (!P) { while (cur.tips.firstChild) cur.tips.removeChild(cur.tips.firstChild); live.textContent = ''; return; }
+    var p = P.p, narrow = cur.mode === 'narrow';
+    LIVE.card(cur.api, cur.tips, {
+      end: P.end, dir: P.down ? 'd' : 'u', W: narrow ? 230 : 250,   // narrow enough to open in the clear strip beside the card
+      narrow: narrow, vb: cur.vb, title: p.name, tag: p.stack.toUpperCase(),
+      rows: [{ small: 'PROBLEM' }, { text: p.problem }, { small: 'WHAT I DID' }, { text: p.fix }, { small: 'RESULT' }, { text: p.result }]
+    });
+    live.textContent = p.name + '. Problem: ' + p.problem + '. What I did: ' + p.fix + '. Result: ' + p.result;
+  }
+
+  var fig = DS.figure({
+    el: '#fig', wide: [1000, 740], narrow: [360, 950], narrowAt: 620,
+    onShow: function (o, key) { if (cur) show(o ? key : null); },
+    build: function (api, mode) {
+      var svg = api.svg, back = api.g(svg), base = api.g(svg), nets = api.g(svg), parts = api.g(svg), tips = api.g(svg);
+      cur = { api: api, tips: tips, chips: {}, mode: mode, vb: mode === 'wide' ? [1000, 740] : [360, 950], fit: null };
+      if (mode === 'wide') {
+        // the rest of the board: RAM above the card, the CPU at the right edge (sliding to hug it), SSD and NIC below
+        var B = LIVE.board(api, back), east = api.g(back);
+        B.ram(120, 24, 420); B.ssd(40, 650, 270); B.nic(340, 680, 220, 120);
+        var cpu = B.cpu(850, 60, 640, east);
+        var X0 = 40, X1 = 780, Y0 = 120, Y1 = 540;
+        // card: bracket on the left, power header top right, x16 fingers along the bottom with the key gap
+        api.el('rect', { x: X0 - 16, y: Y0 - 10, width: 16, height: Y1 - Y0 + 20, class: 'paper' }, base);
+        [90, 190, 290, 390].forEach(function (py) { api.el('rect', { x: X0 - 12, y: Y0 + py - 44, width: 8, height: 48, class: 'thin' }, base); });
+        api.el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, class: 'paper pcb' }, base);
+        api.el('rect', { x: X1 - 90, y: Y0 - 10, width: 70, height: 10, class: 'body' }, base);
+        // the PCIe x16 edge connector, keyed, and the slot on the board just past its tip
+        LIVE.fingers(api, base, { x: 256, y: Y1, len: 508, d: 24, side: 'b', key: 70, pitch: 9, snug: true });
+        api.el('rect', { x: 248, y: Y1 + 15, width: 524, height: 17, class: 'body' }, base);   // its slot grips the finger tips
+        api.text(base, X0 + 18, Y0 + 24, 'PCIE X16 · CIRCUIT SIDE · PROJECTS', { size: 10.5, cls: 'num' });
+        gpu(api, parts, 80, 220, 210);
+        var vx = 370, vw = 380, vh = 106;
+        PROJ.forEach(function (p, i) {
+          var vy = Y0 + 26 + i * (vh + 26);
+          vram(api, parts, p, i, vx, vy, vw, vh, false);
+          // a three-lane render path from the GPU's right pins to the chip's left edge; turn order keeps paths from crossing
+          for (var l = 0; l < 3; l++) {
+            var sy = 257 + i * 45 + l * 9, ey = vy + vh / 2 - 9 + l * 9;
+            var mid = i === 0 ? 312 + l * 8 : i === 1 ? 342 + (2 - l) * 8 : 312 + (2 - l) * 8;
+            api.net(nets, [[297, sy], [mid, sy], [mid, ey], [vx - 4, ey]], p.key, { r: 6 });
+          }
+        });
+        // the fingers' lanes drop out of the slot and run on into the CPU, the rightmost turning first so none cross
+        var lanes = [];
+        for (var k = 0; k < 8; k++) {
+          var lx = 750 - k * 24, turn = 584 + k * 12;
+          lanes.push([lx, turn, LIVE.trace(api, nets, (k * 7) % 10, k % 2 === 1), api.el('path', { class: 'pin' }, nets)]);
+        }
+        cur.fit = function () {
+          var e = LIVE.edge(svg); if (!e) return;
+          var dx = Math.max(0, e.right - 1070);
+          east.setAttribute('transform', 'translate(' + dx.toFixed(1) + ' 0)');
+          // each lane leaves the slot's underside and ends on its own CPU pin, drawn sharp (the CPU sits blurred behind)
+          lanes.forEach(function (l) {
+            l[2].set([[l[0], Y1 + 32], [l[0], l[1]], [l[0] + 10, l[1] + 10], [840 + dx, l[1] + 10]]);
+            l[3].setAttribute('d', 'M' + (840 + dx) + ' ' + (l[1] + 10) + 'h12');
+          });
+        };
+        cur.fit();
+      } else {
+        // narrow: the card stands upright, GPU at the top, fingers down the right edge with their lanes running off the screen
+        var nx0 = 20, nx1 = 330, ny0 = 30, ny1 = 740;
+        api.el('rect', { x: nx0, y: ny0, width: nx1 - nx0, height: ny1 - ny0, class: 'paper pcb' }, base);
+        LIVE.fingers(api, base, { x: nx1, y: ny0 + 16, len: 288, d: 14, side: 'r', key: 110, pitch: 7, snug: true });
+        api.el('rect', { x: nx1 + 9, y: ny0 + 8, width: 13, height: 304, class: 'body' }, base);   // its slot
+        for (var q = 0; q < 8; q++) api.el('path', { d: 'M' + (nx1 + 22) + ' ' + (ny0 + 40 + q * 32) + 'h3000', class: 'trace' }, nets);
+        gpu(api, parts, 104, 60, 150);
+        var cy0 = 250, ch = 124;   // gaps wide enough for a box's cord to leave between chips
+        PROJ.forEach(function (p, i) {
+          var vy = cy0 + i * (ch + 24);
+          vram(api, parts, p, i, 58, vy, 256, ch, true);
+          for (var l2 = 0; l2 < 2; l2++) {
+            // the top chip takes the lowest pins and the innermost lane, so the bundle never crosses itself
+            var lane = 42 - i * 7 - (1 - l2) * 3, sy2 = 72 + 9 * (10 - i * 3 + l2), ey2 = vy + 34 + (1 - l2) * 8;
+            api.net(nets, [[99, sy2], [lane, sy2], [lane, ey2], [54, ey2]], p.key, { r: 3 });
+          }
+        });
+      }
+    }
+  });
+  LIVE.watch(document.querySelector('#fig .canvas'), function () { if (cur && cur.fit) cur.fit(); });
+  LIVE.tour(fig, document.getElementById('fig'), function () { return cur ? Object.keys(cur.chips).sort() : []; });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<title>lee.sh GPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: the Projects page of lee.sh. Same language as the CPU page: graphite, amber traces, the board blurred behind,
+   facts floating beside gold pads and wired to the part. */
+
+:root {
+  --bg: #0b0d10; --bg-lift: #13171c; --chip: #11151a; --ink: #c3ccd5; --ink-dim: #5f6a76;
+  --glow: #ffb547; --hot: #ffd796; --text: #eef1f4; --muted: #7d8792; --green: #4fe08a;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; background: var(--bg); color: var(--text); }
+body { margin: 0; font-family: var(--sans); overflow: hidden; }
+.scene { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, var(--bg-lift), var(--bg) 70%); }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#far { filter: blur(7px); opacity: .8; transform: scale(1.04); }
+#far .p { fill: none; stroke: var(--ink-dim); stroke-width: 3; }
+#far .f { fill: #10141a; stroke: var(--ink-dim); stroke-width: 3; }
+
+.tr { fill: none; stroke: var(--glow); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; transition: opacity .3s, stroke .3s; }
+.tr-glow { fill: none; stroke: var(--glow); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+.tr.hot { opacity: 1; stroke: var(--hot); }
+.via { fill: var(--bg); stroke: var(--glow); stroke-width: 1.6; opacity: .7; }
+.pulse { fill: none; stroke: #ffe2a8; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 14 2000; animation: run linear infinite; }
+@keyframes run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2014; } }
+.wire { fill: none; stroke: var(--glow); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s, stroke-width .25s; }
+.wire.hot { stroke: var(--hot); stroke-width: 2.6; }
+.wire-glow { fill: none; stroke: var(--glow); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .32; transition: opacity .25s; }
+.wire-glow.hot { opacity: .6; }
+.wire-pulse { fill: none; stroke: #fff0cc; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 12 3000; animation: run2 linear infinite; }
+@keyframes run2 { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -3012; } }
+.wpad { fill: var(--bg); stroke: var(--glow); stroke-width: 1.8; }
+.wpad.hot { fill: var(--glow); }
+
+/* line-drawn parts */
+.body { fill: var(--chip); stroke: var(--ink); stroke-width: 1.6; transition: stroke .25s, filter .25s; }
+.lid { fill: url(#sheen); stroke: var(--ink); stroke-width: 1.3; transition: stroke .25s; }
+.ln { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+.gold { fill: none; stroke: #d9b25a; stroke-width: 1.6; }
+.etch { font-family: var(--mono); fill: var(--text); }
+.etch.dim { fill: var(--muted); }
+.part { cursor: default; }
+.part.hot .body, .part.hot .lid { stroke: var(--glow); }
+.part.hot { filter: drop-shadow(0 0 14px rgba(255, 181, 71, .35)); }
+#comp { filter: drop-shadow(0 0 22px rgba(255, 181, 71, .14)) drop-shadow(0 30px 40px rgba(0, 0, 0, .6)); }
+.breathe { animation: breathe 6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: .85; } }
+
+/* floating facts */
+.callout { transition: opacity .4s; }
+.callout .bob { animation: bob 7s ease-in-out infinite; }
+.callout:nth-child(2n) .bob { animation-duration: 8s; animation-delay: -2s; }
+.callout:nth-child(3n) .bob { animation-duration: 6.5s; animation-delay: -4s; }
+.callout:nth-child(5n) .bob { animation-duration: 8.5s; animation-delay: -3s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.ref { font: 600 10.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--glow); }
+.intro { margin: 8px 0 0; font: 500 clamp(15px, 1.25vw, 18px)/1.5 var(--sans); color: var(--text); text-wrap: pretty; }
+.k { display: block; font: 600 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.k b { color: var(--glow); font-weight: 600; margin-right: 8px; }
+.v { display: block; margin-top: 3px; font: 400 15px/1.45 var(--sans); color: var(--text); }
+.v + .v { margin-top: 6px; }
+.v small { font: 500 11px var(--mono); color: var(--muted); letter-spacing: .06em; margin-right: 6px; text-transform: uppercase; }
+.callout.hot .k { color: var(--hot); }
+.btn {
+  font: 600 13px var(--mono); text-decoration: none; padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center; cursor: pointer;
+  color: var(--glow); border: 1px solid rgba(255, 181, 71, .55); background: rgba(255, 181, 71, .06);
+}
+.btn:hover { background: rgba(255, 181, 71, .14); border-color: var(--glow); }
+.btn.primary { background: var(--glow); color: #1b1305; border-color: var(--glow); }
+.btn:focus-visible, .callout a:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.anchor { position: absolute; left: -14px; top: 7px; width: 1px; height: 1px; }
+
+#wires { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.brand { position: fixed; z-index: 3; top: calc(22px + env(safe-area-inset-top, 0px)); left: 24px; font: 700 18px var(--mono); color: var(--glow); }
+.hint {
+  position: fixed; z-index: 3; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  font: 500 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+
+@media (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .callout { position: fixed; z-index: 2; }
+  .callout[data-place="left"] { text-align: right; }
+  .callout[data-align="end"]:not([data-place="right"]) { text-align: right; }
+  .callout .anchor { display: none; }
+}
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  body { overflow-y: auto; }
+  .scene { position: absolute; height: var(--scene-h, 56svh); }
+  #wires { position: absolute; height: max(100%, var(--doc-h, 100%)); }
+  .facts { position: absolute; left: 52px; right: 20px; top: var(--scene-h, 56svh); display: grid; gap: 16px; padding-bottom: 72px; z-index: 2; }
+  .callout { position: relative; }
+  .intro { font-size: 16px; }
+  .v { font-size: 14.5px; }
+  body .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .wire-pulse { display: none; }
+  .breathe, .callout .bob { animation: none; }
+}
+
+
+.rt { fill: none; stroke: var(--glow); stroke-width: 1.5; opacity: .35; transition: opacity .3s, stroke .3s; stroke-linejoin: round; }
+.rt.hot { opacity: 1; stroke: var(--hot); filter: drop-shadow(0 0 4px rgba(255,181,71,.9)); stroke-dasharray: 6 4; animation: march .6s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -10; } }
+.v.res { color: #7fd8b0; }
+.part { cursor: pointer; outline: none; }
+.part:focus-visible .body { stroke: var(--glow); }
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) { :root { --scene-h: 48svh; } }
+@media (prefers-reduced-motion: reduce) { .rt.hot { animation: none; stroke-dasharray: none; } }
+
+</style>
+
+<div class="scene" role="img" aria-label="Lee's projects shown on the back of a graphics card: the GPU die feeds three memory chips, one per project.">
+  <svg id="far" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<rect class="f" x="-120" y="380" width="300" height="300"></rect>
+<rect class="f" x="200" y="-60" width="840" height="40"></rect>
+<rect class="f" x="1300" y="820" width="300" height="180"></rect>
+<circle class="p" cx="200" cy="860" r="90"></circle></svg>
+  <svg id="near" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1d232a"></stop><stop offset=".45" stop-color="#151a20"></stop>
+        <stop offset=".55" stop-color="#1b2128"></stop><stop offset="1" stop-color="#12161b"></stop>
+      </linearGradient>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"></feGaussianBlur></filter>
+    </defs>
+    <g id="glow" filter="url(#soft)" class="breathe"></g>
+    <g id="lines"></g><g id="pulses"></g><g id="vias"></g>
+    <g id="wired"></g>
+    <g id="comp">
+<rect class="body" x="420" y="270" width="760" height="440" rx="3"></rect>
+<rect class="body" x="400" y="260" width="20" height="460"></rect><rect class="ln" x="404" y="300" width="8" height="54"></rect><rect class="ln" x="404" y="380" width="8" height="54"></rect><rect class="ln" x="404" y="460" width="8" height="54"></rect><rect class="ln" x="404" y="540" width="8" height="54"></rect>
+<rect class="body" x="1040" y="254" width="80" height="16"></rect><rect class="ln" x="1046" y="258" width="7" height="7"></rect><rect class="ln" x="1058" y="258" width="7" height="7"></rect><rect class="ln" x="1070" y="258" width="7" height="7"></rect><rect class="ln" x="1082" y="258" width="7" height="7"></rect><rect class="ln" x="1094" y="258" width="7" height="7"></rect><rect class="ln" x="1106" y="258" width="7" height="7"></rect>
+<path class="gold" d="M500 694 V708 M506 694 V708 M512 694 V708 M518 694 V708 M524 694 V708 M530 694 V708 M536 694 V708 M542 694 V708 M548 694 V708 M554 694 V708 M560 694 V708 M566 694 V708 M572 694 V708 M578 694 V708 M584 694 V708 M590 694 V708 M596 694 V708 M602 694 V708 M608 694 V708 M614 694 V708 M620 694 V708 M626 694 V708 M632 694 V708 M656 694 V708 M662 694 V708 M668 694 V708 M674 694 V708 M680 694 V708 M686 694 V708 M692 694 V708 M698 694 V708 M704 694 V708 M710 694 V708 M716 694 V708 M722 694 V708 M728 694 V708 M734 694 V708 M740 694 V708 M746 694 V708 M752 694 V708 M758 694 V708 M764 694 V708 M770 694 V708 M776 694 V708 M782 694 V708 M788 694 V708 M794 694 V708 M800 694 V708 M806 694 V708 M812 694 V708 M818 694 V708 M824 694 V708 M830 694 V708 M836 694 V708 M842 694 V708 M848 694 V708 M854 694 V708 M860 694 V708 M866 694 V708 M872 694 V708 M878 694 V708 M884 694 V708 M890 694 V708 M896 694 V708 M902 694 V708 M908 694 V708 M914 694 V708 M920 694 V708 M926 694 V708 M932 694 V708 M938 694 V708 M944 694 V708 M950 694 V708 M956 694 V708 M962 694 V708 M968 694 V708 M974 694 V708 M980 694 V708 M986 694 V708 M992 694 V708 M998 694 V708 M1004 694 V708 M1010 694 V708 M1016 694 V708 M1022 694 V708 M1028 694 V708 M1034 694 V708 M1040 694 V708 M1046 694 V708 M1052 694 V708 M1058 694 V708 M1064 694 V708 M1070 694 V708 M1076 694 V708 M1082 694 V708 M1088 694 V708 M1094 694 V708 "></path>
+<text class="etch dim" x="444" y="296" style="font-size: 9px; letter-spacing: .2em">PCIEX16 · BACKSIDE · PROJECTS</text>
+<path class="rt" data-key="p1" d="M730 390 H752 L797 345 H820"></path><path class="rt" data-key="p1" d="M730 400 H752 L797 355 H820"></path><path class="rt" data-key="p1" d="M730 410 H752 L797 365 H820"></path><path class="rt" data-key="p2" d="M730 485 H752 L752 485 H820"></path><path class="rt" data-key="p2" d="M730 495 H752 L752 495 H820"></path><path class="rt" data-key="p2" d="M730 505 H752 L752 505 H820"></path><path class="rt" data-key="p3" d="M730 580 H752 L797 625 H820"></path><path class="rt" data-key="p3" d="M730 590 H752 L797 635 H820"></path><path class="rt" data-key="p3" d="M730 600 H752 L797 645 H820"></path>
+<path class="ln" d="M496 350 v10 M496 620 v10 M460 386 h10 M515 350 v10 M515 620 v10 M460 405 h10 M534 350 v10 M534 620 v10 M460 424 h10 M553 350 v10 M553 620 v10 M460 443 h10 M572 350 v10 M572 620 v10 M460 462 h10 M591 350 v10 M591 620 v10 M460 481 h10 M610 350 v10 M610 620 v10 M460 500 h10 M629 350 v10 M629 620 v10 M460 519 h10 M648 350 v10 M648 620 v10 M460 538 h10 M667 350 v10 M667 620 v10 M460 557 h10 M686 350 v10 M686 620 v10 M460 576 h10 M705 350 v10 M705 620 v10 M460 595 h10 "></path>
+<rect class="body" x="470" y="360" width="260" height="260" rx="2"></rect>
+<rect class="lid" x="520" y="410" width="160" height="160" rx="1"></rect>
+<path class="ln" d="M482 608 v-12 l12 12 z"></path>
+<text class="etch" x="600.0" y="488.0" text-anchor="middle" style="font-size: 34px; font-weight: 800; letter-spacing: .06em">GPU</text>
+<text class="etch" x="600.0" y="512.0" text-anchor="middle" style="font-size: 10px; font-weight: 600; letter-spacing: .2em">LEE-RENDER</text>
+<text class="etch dim" x="600.0" y="530.0" text-anchor="middle" style="font-size: 8.5px; letter-spacing: .18em">3 PROJECTS SHIPPED</text>
+<g class="part" data-key="p1" tabindex="0" aria-label="Project 1: [project-one]">
+  <rect class="body" x="820" y="300" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="308" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 395 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="330" style="font-size: 9px; letter-spacing: .2em">VRAM_01</text>
+  <text class="etch" x="970.0" y="360" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-one]</text>
+  <text class="etch dim" x="970.0" y="382" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">DJANGO · CELERY · REDIS</text>
+</g><g class="part" data-key="p2" tabindex="0" aria-label="Project 2: [project-two]">
+  <rect class="body" x="820" y="440" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="448" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 535 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="470" style="font-size: 9px; letter-spacing: .2em">VRAM_02</text>
+  <text class="etch" x="970.0" y="500" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-two]</text>
+  <text class="etch dim" x="970.0" y="522" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">POSTGRESQL · DRF</text>
+</g><g class="part" data-key="p3" tabindex="0" aria-label="Project 3: [project-three]">
+  <rect class="body" x="820" y="580" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="588" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 675 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="610" style="font-size: 9px; letter-spacing: .2em">VRAM_03</text>
+  <text class="etch" x="970.0" y="640" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-three]</text>
+  <text class="etch dim" x="970.0" y="662" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">AWS · DOCKER</text>
+</g>
+</g>
+  </svg>
+</div>
+
+<svg id="wires" aria-hidden="true"></svg>
+
+<section class="facts" aria-label="Projects">
+  <div class="callout" data-key="intro" data-from="520,350" data-dir="u" data-lane="480" data-end="190" data-place="above" data-align="end" data-w="340">
+    <span class="anchor"></span><div class="bob"><div class="ref">U4 · Projects</div><p class="intro">Things I've built. The GPU renders each project into its own memory chip. Hover one to light its path.</p></div>
+  </div>
+  <div class="callout" data-key="p1" data-from="1120,355.0" data-dir="r" data-lane="330" data-end="1230" data-place="right" data-align="start" data-w="300">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>01</b>[project-one]</span><span class="v">[Slow checkout API] → [moved fan-out to Celery + Redis]</span><span class="v res"><small>Result</small>[impact metric]</span></div>
+  </div>
+  <div class="callout" data-key="p2" data-from="1120,495.0" data-dir="r" data-lane="495" data-end="1230" data-place="right" data-align="start" data-w="300">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>02</b>[project-two]</span><span class="v">[What was broken] → [what you changed]</span><span class="v res"><small>Result</small>[impact metric]</span></div>
+  </div>
+  <div class="callout" data-key="p3" data-from="1120,635.0" data-dir="r" data-lane="660" data-end="1230" data-place="right" data-align="start" data-w="300">
+    <span class="anchor"></span><div class="bob"><span class="k"><b>03</b>[project-three]</span><span class="v">[What was broken] → [what you changed]</span><span class="v res"><small>Result</small>[impact metric]</span></div>
+  </div>
+</section>
+
+<div class="brand">lee.sh</div>
+<div class="hint">Hover a project</div>
+
+<script>
+window.PORTS = [{'x': 800, 'y': 710, 'dir': 'd', 'n': 34, 'sp': 17, 'fan': 0.5}];
+window.NARROW_BOX = '390 236 800 490';
+window.NARROW_FROM = [470, 580];
+
+</script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', RUN = 22;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var wide = matchMedia('(min-width: 1100px) and (min-aspect-ratio: 5/4)');
+  var near = document.getElementById('near'), far = document.getElementById('far');
+  var callouts = [].slice.call(document.querySelectorAll('.callout'));
+  var PORTS = window.PORTS || [], WIDE_BOX = '0 0 1600 1000', NARROW_BOX = window.NARROW_BOX;
+  var DIRS = { r: [1, 0], l: [-1, 0], u: [0, -1], d: [0, 1] };
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+  function clear(id) { var g = document.getElementById(id); while (g.firstChild) g.removeChild(g.firstChild); return g; }
+  function toScreen(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM()); }
+  function toVB(x, y) { var p = near.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(near.getScreenCTM().inverse()); }
+  function d(pts) { return pts.map(function (p, k) { return (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' '); }
+  function entry(p, q, rects) {
+    var best = null;
+    rects.forEach(function (r) {
+      var dx = q[0] - p[0], dy = q[1] - p[1], t0 = 0, t1 = 1, ok = true;
+      var P = [-dx, dx, -dy, dy], Q = [p[0] - r.x0, r.x1 - p[0], p[1] - r.y0, r.y1 - p[1]];
+      for (var i = 0; i < 4 && ok; i++) {
+        if (P[i] === 0) { if (Q[i] < 0) ok = false; }
+        else { var u = Q[i] / P[i]; if (P[i] < 0) { if (u > t1) ok = false; else if (u > t0) t0 = u; } else { if (u < t0) ok = false; else if (u < t1) t1 = u; } }
+      }
+      if (ok && (best === null || t0 < best)) best = t0;
+    });
+    return best;
+  }
+  function clip(pts, rects) {
+    var out = [pts[0]];
+    for (var k = 0; k < pts.length - 1; k++) {
+      var p = pts[k], q = pts[k + 1], t = entry(p, q, rects);
+      if (t !== null) {
+        var len = Math.hypot(q[0] - p[0], q[1] - p[1]), u = Math.max(0, t - (len ? 10 / len : 0));
+        out.push([p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u]);
+        return { pts: out, cut: true };
+      }
+      out.push(q);
+    }
+    return { pts: out, cut: false };
+  }
+
+  // ambient traces: each port is a row of contacts fanning out like the CPU's pins
+  function ambient(keep) {
+    var seed = 11;
+    function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    var glow = clear('glow'), lines = clear('lines'), pulses = clear('pulses'), vias = clear('vias');
+    PORTS.forEach(function (p) {
+      var o = DIRS[p.dir];
+      for (var i = 0; i < p.n; i++) {
+        var t = (i - (p.n - 1) / 2) * p.sp;
+        var ex = p.x + (o[0] ? 0 : t), ey = p.y + (o[0] ? t : 0);
+        var r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd(), r5 = rnd();
+        var spread = t * (p.fan == null ? 0.9 : p.fan), run1 = RUN + r1 * 14;
+        var x1 = ex + o[0] * run1, y1 = ey + o[1] * run1;
+        var x2 = x1 + (o[0] ? o[0] * Math.abs(spread) : spread), y2 = y1 + (o[0] ? spread : o[1] * Math.abs(spread));
+        var farL = 1200, stop = r2 < (p.short || 0.38) ? 90 + r3 * 240 : farL;
+        if (p.max) stop = Math.min(stop, p.max * (0.5 + r3 * 0.5));
+        var c = clip([[ex, ey], [x1, y1], [x2, y2], [x2 + o[0] * stop, y2 + o[1] * stop]], keep);
+        var dd = d(c.pts), attrs = { d: dd, class: 'tr' };
+        if (p.key) attrs['data-key'] = p.key;
+        el('path', { d: dd, class: 'tr-glow' }, glow);
+        el('path', attrs, lines);
+        if (c.cut || stop < farL) { var e = c.pts[c.pts.length - 1]; el('circle', { cx: e[0], cy: e[1], r: 4, class: 'via' }, vias); }
+        if (!reduce && r4 < 0.45 && !c.cut) {
+          var q = el('path', { d: dd, class: 'pulse' }, pulses);
+          q.style.animationDuration = (3.5 + r5 * 4).toFixed(2) + 's'; q.style.animationDelay = (-r5 * 6).toFixed(2) + 's';
+        }
+      }
+    });
+  }
+
+  // a wire: out of the part, one 45° bend onto its lane, then straight to the pad
+  function route(c) {
+    var f = c.dataset.from.split(',').map(Number), o = DIRS[c.dataset.dir], lane = +c.dataset.lane, end = +c.dataset.end, pts = [[f[0], f[1]]];
+    if (o[0]) { var x1 = f[0] + o[0] * RUN; pts.push([x1, f[1]], [x1 + o[0] * Math.abs(lane - f[1]), lane], [end, lane]); return { pts: pts, pad: { x: end, y: lane } }; }
+    var y1 = f[1] + o[1] * RUN; pts.push([f[0], y1], [lane, y1 + o[1] * Math.abs(lane - f[0])], [lane, end]); return { pts: pts, pad: { x: lane, y: end } };
+  }
+  function drawWire(pts, key, k, g) {
+    var dd = d(pts);
+    el('path', { d: dd, class: 'wire-glow', 'data-key': key }, g);
+    el('path', { d: dd, class: 'wire', 'data-key': key }, g);
+    if (!reduce) { var p = el('path', { d: dd, class: 'wire-pulse' }, g); p.style.animationDuration = (2.8 + k * 0.4) + 's'; p.style.animationDelay = (-k * 0.8) + 's'; }
+    var e = pts[pts.length - 1];
+    el('rect', { x: e[0] - 5, y: e[1] - 5, width: 10, height: 10, class: 'wpad', 'data-key': key }, g);
+  }
+
+  function layoutWide() {
+    near.setAttribute('viewBox', WIDE_BOX); far.setAttribute('viewBox', WIDE_BOX);
+    near.setAttribute('preserveAspectRatio', 'xMidYMid slice'); far.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    clear('wires');
+    var keep = [], wires = [];
+    callouts.forEach(function (c) {
+      c.style.left = c.style.top = c.style.width = '';
+      var r = route(c); wires.push(r);
+      var P = toScreen(r.pad.x, r.pad.y), place = c.dataset.place, align = c.dataset.align || 'start', gap = 16;
+      var want = +(c.dataset.w || 320);
+      var maxW = place === 'left' ? P.x - gap - 24 : place === 'right' ? innerWidth - P.x - gap - 24 : innerWidth - 32;
+      c.style.width = Math.max(160, Math.min(want, maxW)) + 'px';
+      var w = c.offsetWidth, h = c.offsetHeight, line = 7, left, top;
+      if (place === 'left') { left = P.x - gap - w; top = P.y - line; }
+      else if (place === 'right') { left = P.x + gap; top = P.y - line; }
+      else {
+        left = align === 'end' ? P.x + 10 - w : align === 'center' ? P.x - w / 2 : P.x - 10;
+        top = place === 'above' ? P.y - gap - h : P.y + gap;
+      }
+      left = Math.max(16, Math.min(innerWidth - w - 16, left)); top = Math.max(56, Math.min(innerHeight - h - 40, top));
+      c.style.left = left + 'px'; c.style.top = top + 'px';
+      var tl = toVB(left - 14, top - 12), br = toVB(left + w + 14, top + h + 12);
+      keep.push({ x0: tl.x, y0: tl.y, x1: br.x, y1: br.y });
+    });
+    ambient(keep.concat(window.KEEP || []));
+    var g = clear('wired');
+    wires.forEach(function (r, k) { drawWire(r.pts, callouts[k].dataset.key, k, g); });
+  }
+
+  function centre(e) { var r = e.getBoundingClientRect(); return { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY }; }
+  function layoutNarrow() {
+    near.setAttribute('viewBox', NARROW_BOX); far.setAttribute('viewBox', NARROW_BOX);
+    near.setAttribute('preserveAspectRatio', 'xMidYMid meet'); far.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    callouts.forEach(function (c) { c.style.left = c.style.top = c.style.width = ''; });
+    clear('wired');
+    var sc = document.querySelector('.scene').getBoundingClientRect();
+    var bottom = toVB(0, sc.bottom - 4);
+    ambient([{ x0: -9999, y0: bottom.y, x1: 9999, y1: 9999 }].concat(window.KEEP || []));
+    document.documentElement.style.removeProperty('--doc-h');
+    document.documentElement.style.setProperty('--doc-h', document.documentElement.scrollHeight + 'px');
+    var svg = clear('wires');
+    var from = window.NARROW_FROM, s = toScreen(from[0], from[1]); s = { x: s.x + scrollX, y: s.y + scrollY };
+    var anchors = callouts.map(function (c) { return centre(c.querySelector('.anchor')); });
+    var lane = 22, lastY = anchors[anchors.length - 1].y;
+    var trunk = 'M' + s.x + ' ' + s.y + ' H' + lane + ' V' + lastY;
+    el('path', { d: trunk, class: 'wire-glow' }, svg); el('path', { d: trunk, class: 'wire' }, svg);
+    if (!reduce) { var p = el('path', { d: trunk, class: 'wire-pulse' }, svg); p.style.animationDuration = '3.4s'; }
+    anchors.forEach(function (a, k) {
+      var tap = 'M' + lane + ' ' + a.y + ' H' + a.x;
+      el('path', { d: tap, class: 'wire', 'data-key': callouts[k].dataset.key }, svg);
+      el('rect', { x: a.x - 4, y: a.y - 4, width: 8, height: 8, class: 'wpad', 'data-key': callouts[k].dataset.key }, svg);
+    });
+    el('circle', { cx: s.x, cy: s.y, r: 4, class: 'wpad' }, svg);
+  }
+
+  function hot(key, on) { document.querySelectorAll('[data-key="' + key + '"]').forEach(function (x) { x.classList.toggle('hot', on); }); }
+  document.querySelectorAll('.callout[data-key], .part[data-key]').forEach(function (e) {
+    var k = e.getAttribute('data-key');
+    e.addEventListener('pointerenter', function () { hot(k, true); });
+    e.addEventListener('pointerleave', function () { hot(k, false); });
+    e.addEventListener('focusin', function () { hot(k, true); });
+    e.addEventListener('focusout', function () { hot(k, false); });
+  });
+
+  function layout() { if (wide.matches) layoutWide(); else layoutNarrow(); if (window.AFTER_LAYOUT) window.AFTER_LAYOUT(wide.matches); }
+  window.BOARD = { layout: layout, hot: hot, toScreen: toScreen, toVB: toVB, reduce: reduce };
+  layout();
+  addEventListener('resize', layout);
+  wide.addEventListener('change', layout);
+  if (document.fonts) document.fonts.ready.then(layout);
+})();
+</script>
+<script></script>

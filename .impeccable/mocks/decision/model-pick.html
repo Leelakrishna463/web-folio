@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Datasheet sketch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root{--ink:#121212;--red:#c8102e;--rule:#d9d9d6;--sans:"Archivo",Arial,sans-serif;--mono:"JetBrains Mono",monospace}
+html,body{margin:0;background:#fff;color:var(--ink)}
+body{width:1440px;height:900px;overflow:hidden;font-family:var(--sans)}
+.band{height:10px;background:var(--red)}
+header{display:flex;justify-content:space-between;align-items:flex-end;padding:22px 64px 14px;border-bottom:2px solid var(--ink)}
+.pn{font:800 64px/1 var(--sans);letter-spacing:-.01em}
+.meta{font:400 12px var(--mono);text-align:right;line-height:1.6}
+.sub{padding:14px 64px;font:600 26px/1.25 var(--sans);border-bottom:1px solid var(--rule)}
+main{display:grid;grid-template-columns:520px 1fr;gap:48px;padding:24px 64px}
+h2{font:800 15px var(--sans);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;color:var(--red)}
+ul{margin:0 0 20px;padding-left:18px;font:400 14px/1.6 var(--sans)}
+p{font:400 14px/1.6 var(--sans);margin:0 0 20px}
+.fig{border:1px solid var(--rule);padding:18px}
+.cap{font:600 12px var(--mono);margin-top:8px}
+.btns{display:flex;gap:12px;margin-top:6px}
+.btn{font:700 13px var(--mono);padding:12px 18px;border:2px solid var(--ink);color:var(--ink)}
+.btn.p{background:var(--ink);color:#fff}
+</style></head><body>
+<div class="band"></div>
+<header><div><div class="pn">LEE-5Y</div></div><div class="meta">SLLS-LEE · OCTOBER 2026 · REV 2.0<br>BENGALURU, INDIA · lee.sh</div></header>
+<div class="sub">LEE-5Y Senior Backend Engineer: Python, Django, PostgreSQL. Open to senior roles.</div>
+<main>
+ <section>
+  <h2>1 Features</h2>
+  <ul><li>~5 years building APIs, data models and background jobs</li><li>Core: Python · Django · PostgreSQL · Redis</li><li>Daily: DRF, SQL; comfortable: Celery, C++</li><li>Low-latency, fault-tolerant operation</li></ul>
+  <h2>2 Applications</h2>
+  <ul><li>Senior backend engineering roles</li><li>[Company] · [Company] · [Company]</li></ul>
+  <h2>3 Description</h2>
+  <p>I build the systems behind products: APIs, data models, and the background jobs that keep them fast and reliable.</p>
+  <div class="btns"><span class="btn p">Résumé ↗</span><span class="btn">Email</span></div>
+ </section>
+ <section class="fig">
+  <svg viewBox="0 0 760 520" width="100%" aria-label="Pinout">
+   <g fill="none" stroke="#121212" stroke-width="1.5">
+    <rect x="250" y="130" width="260" height="260"/>
+    <circle cx="272" cy="152" r="5"/>
+    <path d="M272 130v-22M310 130v-22M348 130v-22M386 130v-22M424 130v-22M462 130v-22M500 130v-22"/>
+    <path d="M272 390v22M310 390v22M348 390v22M386 390v22M424 390v22M462 390v22M500 390v22"/>
+    <path d="M250 150h-22M250 190h-22M250 230h-22M250 270h-22M250 310h-22M250 350h-22"/>
+    <path d="M510 150h22M510 190h22M510 230h22M510 270h22M510 310h22M510 350h22"/>
+   </g>
+   <g font-family="JetBrains Mono" font-size="12" fill="#121212">
+    <text x="220" y="154" text-anchor="end">PYTHON  1</text><text x="220" y="194" text-anchor="end">DJANGO  2</text><text x="220" y="234" text-anchor="end">POSTGRESQL  3</text><text x="220" y="274" text-anchor="end">REDIS  4</text><text x="220" y="314" text-anchor="end">DRF  5</text><text x="220" y="354" text-anchor="end">CELERY  6</text>
+    <text x="540" y="154">7  SQL</text><text x="540" y="194">8  C++</text><text x="540" y="234">9  [AWS]</text><text x="540" y="274">10  [DOCKER]</text><text x="540" y="314">11  [NGINX]</text><text x="540" y="354">12  NC (FREE)</text>
+   </g>
+   <text x="380" y="262" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="54">LEE</text>
+   <text x="380" y="292" text-anchor="middle" font-family="JetBrains Mono" font-size="11">SENIOR BACKEND ENGINEER</text>
+   <text x="380" y="470" text-anchor="middle" font-family="JetBrains Mono" font-size="12">QFP-48 · TOP VIEW</text>
+  </svg>
+  <div class="cap">Figure 1. Pin configuration: every pin is a skill</div>
+ </section>
+</main>
+</body></html>

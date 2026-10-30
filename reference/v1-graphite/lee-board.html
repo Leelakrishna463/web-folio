@@ -1,0 +1,620 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lee.sh Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: the bird's-eye board (landing) and a preview of the scroll camera. The five approved drawings sit on one
+   board, every connector facing the CPU. Scrolling flies the camera to each page's exact framing; what it is not
+   looking at drops back out of focus. Notes are left to the component pages; this file shows the board and the moves. */
+
+:root {
+  --bg: #0b0d10; --bg-lift: #13171c; --chip: #11151a; --ink: #c3ccd5; --ink-dim: #5f6a76;
+  --glow: #ffb547; --hot: #ffd796; --text: #eef1f4; --muted: #7d8792; --green: #4fe08a;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; background: var(--bg); color: var(--text); }
+body { margin: 0; font-family: var(--sans); overflow: hidden; }
+.scene { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, var(--bg-lift), var(--bg) 70%); }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#far { filter: blur(7px); opacity: .8; transform: scale(1.04); }
+#far .p { fill: none; stroke: var(--ink-dim); stroke-width: 3; }
+#far .f { fill: #10141a; stroke: var(--ink-dim); stroke-width: 3; }
+
+.tr { fill: none; stroke: var(--glow); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; transition: opacity .3s, stroke .3s; }
+.tr-glow { fill: none; stroke: var(--glow); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+.tr.hot { opacity: 1; stroke: var(--hot); }
+.via { fill: var(--bg); stroke: var(--glow); stroke-width: 1.6; opacity: .7; }
+.pulse { fill: none; stroke: #ffe2a8; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 14 2000; animation: run linear infinite; }
+@keyframes run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2014; } }
+.wire { fill: none; stroke: var(--glow); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s, stroke-width .25s; }
+.wire.hot { stroke: var(--hot); stroke-width: 2.6; }
+.wire-glow { fill: none; stroke: var(--glow); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .32; transition: opacity .25s; }
+.wire-glow.hot { opacity: .6; }
+.wire-pulse { fill: none; stroke: #fff0cc; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 12 3000; animation: run2 linear infinite; }
+@keyframes run2 { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -3012; } }
+.wpad { fill: var(--bg); stroke: var(--glow); stroke-width: 1.8; }
+.wpad.hot { fill: var(--glow); }
+
+/* line-drawn parts */
+.body { fill: var(--chip); stroke: var(--ink); stroke-width: 1.6; transition: stroke .25s, filter .25s; }
+.lid { fill: url(#sheen); stroke: var(--ink); stroke-width: 1.3; transition: stroke .25s; }
+.ln { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+.gold { fill: none; stroke: #d9b25a; stroke-width: 1.6; }
+.etch { font-family: var(--mono); fill: var(--text); }
+.etch.dim { fill: var(--muted); }
+.part { cursor: default; }
+.part.hot .body, .part.hot .lid { stroke: var(--glow); }
+.part.hot { filter: drop-shadow(0 0 14px rgba(255, 181, 71, .35)); }
+#comp { filter: drop-shadow(0 0 22px rgba(255, 181, 71, .14)) drop-shadow(0 30px 40px rgba(0, 0, 0, .6)); }
+.breathe { animation: breathe 6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: .85; } }
+
+/* floating facts */
+.callout { transition: opacity .4s; }
+.callout .bob { animation: bob 7s ease-in-out infinite; }
+.callout:nth-child(2n) .bob { animation-duration: 8s; animation-delay: -2s; }
+.callout:nth-child(3n) .bob { animation-duration: 6.5s; animation-delay: -4s; }
+.callout:nth-child(5n) .bob { animation-duration: 8.5s; animation-delay: -3s; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.ref { font: 600 10.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--glow); }
+.intro { margin: 8px 0 0; font: 500 clamp(15px, 1.25vw, 18px)/1.5 var(--sans); color: var(--text); text-wrap: pretty; }
+.k { display: block; font: 600 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.k b { color: var(--glow); font-weight: 600; margin-right: 8px; }
+.v { display: block; margin-top: 3px; font: 400 15px/1.45 var(--sans); color: var(--text); }
+.v + .v { margin-top: 6px; }
+.v small { font: 500 11px var(--mono); color: var(--muted); letter-spacing: .06em; margin-right: 6px; text-transform: uppercase; }
+.callout.hot .k { color: var(--hot); }
+.btn {
+  font: 600 13px var(--mono); text-decoration: none; padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center; cursor: pointer;
+  color: var(--glow); border: 1px solid rgba(255, 181, 71, .55); background: rgba(255, 181, 71, .06);
+}
+.btn:hover { background: rgba(255, 181, 71, .14); border-color: var(--glow); }
+.btn.primary { background: var(--glow); color: #1b1305; border-color: var(--glow); }
+.btn:focus-visible, .callout a:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.anchor { position: absolute; left: -14px; top: 7px; width: 1px; height: 1px; }
+
+#wires { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.brand { position: fixed; z-index: 3; top: calc(22px + env(safe-area-inset-top, 0px)); left: 24px; font: 700 18px var(--mono); color: var(--glow); }
+.hint {
+  position: fixed; z-index: 3; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  font: 500 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+
+@media (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .callout { position: fixed; z-index: 2; }
+  .callout[data-place="left"] { text-align: right; }
+  .callout[data-align="end"]:not([data-place="right"]) { text-align: right; }
+  .callout .anchor { display: none; }
+}
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  body { overflow-y: auto; }
+  .scene { position: absolute; height: var(--scene-h, 56svh); }
+  #wires { position: absolute; height: max(100%, var(--doc-h, 100%)); }
+  .facts { position: absolute; left: 52px; right: 20px; top: var(--scene-h, 56svh); display: grid; gap: 16px; padding-bottom: 72px; z-index: 2; }
+  .callout { position: relative; }
+  .intro { font-size: 16px; }
+  .v { font-size: 14.5px; }
+  body .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .wire-pulse { display: none; }
+  .breathe, .callout .bob { animation: none; }
+}
+
+
+html { scroll-snap-type: y proximity; }
+body { overflow: visible; }
+.track section { height: 100vh; height: 100svh; scroll-snap-align: start; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: radial-gradient(ellipse 70% 60% at 50% 45%, var(--bg-lift), var(--bg) 75%); }
+.pcb { fill: #0e1115; stroke: #262c33; stroke-width: 2; }
+.hole { fill: var(--bg); stroke: #3a424b; stroke-width: 1.5; }
+.ring { fill: none; stroke: #262c33; stroke-width: 1.5; }
+.slot { fill: #0f1317; stroke: var(--ink-dim); stroke-width: 1.4; }
+.silk { font: 500 13px var(--mono); letter-spacing: .26em; fill: var(--muted); }
+.silk.on { fill: #a9e9c2; }
+.title .name { font: 600 92px var(--sans); fill: var(--text); letter-spacing: -.01em; }
+.title .role { font: 400 34px var(--sans); fill: var(--text); }
+.pwr { fill: var(--green); filter: drop-shadow(0 0 6px var(--green)); }
+.carrier { fill: none; stroke: none; }
+.pin { stroke: var(--ink); stroke-width: 1.6; }
+.pkg { fill: var(--chip); stroke: var(--ink); stroke-width: 1.8; }
+.partw[data-part="cpu"] > g { filter: drop-shadow(0 0 22px rgba(255, 181, 71, .16)); }
+.bit { font: 700 13px var(--mono); fill: var(--hot); pointer-events: none; }
+.led { fill: none; stroke: #5f6a76; stroke-width: 1; }
+.led.on { fill: var(--glow); stroke: var(--glow); }
+.etch.now { fill: var(--green); }
+.rt { fill: none; stroke: var(--glow); stroke-width: 1.5; opacity: .35; stroke-linejoin: round; }
+.lanes { fill: none; stroke: var(--glow); stroke-width: 1.3; opacity: .45; stroke-linejoin: round; }
+.hole-j, .body.hole { fill: #07090b; }
+.halo { fill: rgba(255,181,71,.07); stroke: var(--glow); stroke-width: 1.5; opacity: .55; }
+.asic .core { stroke: var(--glow); }
+.led-link { fill: var(--green); }
+.led-act { fill: var(--glow); animation: act 1.9s steps(1) infinite; }
+@keyframes act { 0%,100%{opacity:1} 9%{opacity:.15} 13%{opacity:1} 31%{opacity:.2} 34%{opacity:1} 37%{opacity:.2} 41%{opacity:1} 66%{opacity:.15} 72%{opacity:1} }
+
+/* depth of field: whatever the camera is not looking at drops back, like each page's blurred board */
+.partw, .bus, .stubs, .title, .slot { transition: filter .35s cubic-bezier(.23,1,.32,1), opacity .35s cubic-bezier(.23,1,.32,1); }
+.far { filter: blur(6px); opacity: .45; }
+.partw { cursor: pointer; outline: none; }
+.partw.lit .body, .partw.lit .lid, .partw.lit .pkg { stroke: var(--glow); }
+.partw:focus-visible .body, .partw:focus-visible .pkg { stroke: var(--hot); }
+.bus .tr { transition: opacity .3s, stroke .3s; }
+.bus.lit .tr { opacity: 1; stroke: var(--hot); }
+.lbl { cursor: pointer; transition: opacity .3s; }
+.lbl .n { font: 600 34px var(--sans); fill: var(--text); transition: fill .25s; }
+.lbl .s { font: 600 12.5px var(--mono); letter-spacing: .2em; fill: var(--muted); }
+.lbl.lit .n { fill: var(--glow); }
+html.zoomed .lbl, html.zoomed .title { opacity: 0; pointer-events: none; }
+
+/* chrome */
+.top { position: fixed; z-index: 3; top: calc(20px + env(safe-area-inset-top, 0px)); left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.top .brand { position: static; }
+.top .btn { pointer-events: auto; min-height: 40px; padding: 9px 14px; }
+/* section index lives in the top bar: the band above y=56 is the only place no page puts a note */
+.index { position: fixed; z-index: 3; left: 50%; top: calc(20px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); margin: 0; padding: 0; list-style: none; display: flex; gap: 26px; }
+.index a { display: flex; align-items: center; gap: 9px; font: 600 10.5px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); text-decoration: none; min-height: 40px; transition: color .2s ease; }
+.index a::before { content: ""; width: 7px; height: 7px; border: 1px solid #4a535d; transition: background .2s ease, border-color .2s ease; }
+.index a b { color: var(--ink-dim); font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .index a:hover { color: var(--text); } }
+.index a[aria-current="true"] { color: var(--glow); }
+.index a[aria-current="true"]::before { background: var(--glow); border-color: var(--glow); box-shadow: 0 0 8px rgba(255,181,71,.7); }
+.index a:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; }
+.hint { display: flex; flex-direction: column; align-items: center; gap: 8px; transition: opacity .3s; }
+.hint i { width: 1px; height: 28px; background: linear-gradient(var(--glow), transparent); animation: drip 2.4s ease-in-out infinite; }
+@keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+html:not([data-step="board"]) .hint { opacity: 0; }
+.cap { position: fixed; z-index: 3; left: 24px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); max-width: 46ch; }
+.cap b { color: var(--glow); font-weight: 600; }
+.closing { position: fixed; z-index: 3; left: 50%; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; gap: 18px; align-items: center; flex-wrap: wrap; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s cubic-bezier(.23,1,.32,1); }
+html[data-step="all"] .closing { opacity: 1; pointer-events: auto; }
+.closing h2 { margin: 0; font: 600 clamp(20px, 2.2vw, 28px)/1.2 var(--sans); }
+.closing h2 span { color: var(--glow); }
+.btn:active { transform: scale(.97); }
+.btn { transition: transform .16s cubic-bezier(.23,1,.32,1), background .2s; }
+
+@media not all and (min-width: 1100px) and (min-aspect-ratio: 5/4) {
+  .index, .cap, .track { display: none; }
+  html { scroll-snap-type: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .led-act, .hint i { animation: none; }
+  .bit { display: none; }
+}
+
+</style>
+
+<svg id="world" viewBox="-1260 -960 2620 1360" role="img" aria-label="Lee's motherboard from above. The CPU in the centre is About me. Wired to it: the RAM on the right is Skills, the SSD on the left is Experience, the graphics card at the top is Projects and the network card at the top right is Contact.">
+  <defs>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d232a"></stop><stop offset=".45" stop-color="#151a20"></stop>
+      <stop offset=".55" stop-color="#1b2128"></stop><stop offset="1" stop-color="#12161b"></stop>
+    </linearGradient>
+  </defs>
+  
+<rect class="pcb" x="-1200" y="-900" width="2500" height="1240" rx="3"></rect>
+<circle class="hole" cx="-1160" cy="-860" r="10"></circle><circle class="ring" cx="-1160" cy="-860" r="17"></circle><circle class="hole" cx="1260" cy="-860" r="10"></circle><circle class="ring" cx="1260" cy="-860" r="17"></circle><circle class="hole" cx="-1160" cy="300" r="10"></circle><circle class="ring" cx="-1160" cy="300" r="17"></circle><circle class="hole" cx="1260" cy="300" r="10"></circle><circle class="ring" cx="1260" cy="300" r="17"></circle>
+<text class="silk" x="1230" y="306" text-anchor="end">BENGALURU · IN · MADE BY LEE</text>
+<g class="title">
+  <text class="silk" x="-1130" y="-800">LEE.SH · BACKEND MAINBOARD · REV 2.0</text>
+  <text class="name" x="-1134" y="-712">Lee</text>
+  <text class="role" x="-1130" y="-664">Senior Backend Engineer</text>
+  <text class="silk" x="-1130" y="-624">PYTHON · DJANGO · POSTGRESQL · BENGALURU</text>
+  <rect class="pwr" x="-1130" y="-596" width="16" height="8"></rect>
+  <text class="silk on" x="-1104" y="-588">PWR · OPEN TO SENIOR BACKEND ROLES</text>
+</g>
+<g class="stubs"><path class="tr" d="M480.0 -204.0 L460.9 -204.0"></path><circle class="via" cx="460.9" cy="-204.0" r="3.4"></circle><path class="tr" d="M480.0 -195.5 L464.7 -195.5"></path><circle class="via" cx="464.7" cy="-195.5" r="3.4"></circle><path class="tr" d="M480.0 -187.0 L453.7 -187.0"></path><circle class="via" cx="453.7" cy="-187.0" r="3.4"></circle><path class="tr" d="M480.0 -144.5 L466.4 -144.5"></path><circle class="via" cx="466.4" cy="-144.5" r="3.4"></circle><path class="tr" d="M480.0 -136.0 L456.2 -136.0"></path><circle class="via" cx="456.2" cy="-136.0" r="3.4"></circle><path class="tr" d="M480.0 -127.5 L460.0 -127.5"></path><circle class="via" cx="460.0" cy="-127.5" r="3.4"></circle><path class="tr" d="M480.0 -93.5 L466.7 -93.5"></path><circle class="via" cx="466.7" cy="-93.5" r="3.4"></circle><path class="tr" d="M480.0 -85.0 L456.8 -85.0"></path><circle class="via" cx="456.8" cy="-85.0" r="3.4"></circle><path class="tr" d="M480.0 -76.5 L467.2 -76.5"></path><circle class="via" cx="467.2" cy="-76.5" r="3.4"></circle><path class="tr" d="M480.0 -34.0 L458.5 -34.0"></path><circle class="via" cx="458.5" cy="-34.0" r="3.4"></circle><path class="tr" d="M480.0 -25.5 L466.5 -25.5"></path><circle class="via" cx="466.5" cy="-25.5" r="3.4"></circle><path class="tr" d="M480.0 -17.0 L466.0 -17.0"></path><circle class="via" cx="466.0" cy="-17.0" r="3.4"></circle><path class="tr" d="M480.0 17.0 L458.7 17.0"></path><circle class="via" cx="458.7" cy="17.0" r="3.4"></circle><path class="tr" d="M480.0 25.5 L449.8 25.5"></path><circle class="via" cx="449.8" cy="25.5" r="3.4"></circle><path class="tr" d="M480.0 34.0 L465.3 34.0"></path><circle class="via" cx="465.3" cy="34.0" r="3.4"></circle><path class="tr" d="M480.0 76.5 L463.1 76.5"></path><circle class="via" cx="463.1" cy="76.5" r="3.4"></circle><path class="tr" d="M480.0 85.0 L454.2 85.0"></path><circle class="via" cx="454.2" cy="85.0" r="3.4"></circle><path class="tr" d="M480.0 93.5 L447.2 93.5"></path><circle class="via" cx="447.2" cy="93.5" r="3.4"></circle><path class="tr" d="M480.0 127.5 L455.3 127.5"></path><circle class="via" cx="455.3" cy="127.5" r="3.4"></circle><path class="tr" d="M480.0 136.0 L459.3 136.0"></path><circle class="via" cx="459.3" cy="136.0" r="3.4"></circle><path class="tr" d="M480.0 144.5 L446.5 144.5"></path><circle class="via" cx="446.5" cy="144.5" r="3.4"></circle><path class="tr" d="M480.0 187.0 L467.0 187.0"></path><circle class="via" cx="467.0" cy="187.0" r="3.4"></circle><path class="tr" d="M480.0 195.5 L449.1 195.5"></path><circle class="via" cx="449.1" cy="195.5" r="3.4"></circle><path class="tr" d="M480.0 204.0 L461.6 204.0"></path><circle class="via" cx="461.6" cy="204.0" r="3.4"></circle><path class="tr" d="M-460.0 -61.8 L-447.7 -61.8"></path><circle class="via" cx="-447.7" cy="-61.8" r="3.4"></circle><path class="tr" d="M-460.0 -55.2 L-448.1 -55.2"></path><circle class="via" cx="-448.1" cy="-55.2" r="3.4"></circle><path class="tr" d="M-460.0 55.2 L-445.1 55.2"></path><circle class="via" cx="-445.1" cy="55.2" r="3.4"></circle><path class="tr" d="M-460.0 61.8 L-436.9 61.8"></path><circle class="via" cx="-436.9" cy="61.8" r="3.4"></circle><path class="tr" d="M-132.0 178.0 L-132.0 195.3"></path><circle class="via" cx="-132.0" cy="195.3" r="3.4"></circle><path class="tr" d="M-114.4 178.0 L-114.4 202.5"></path><circle class="via" cx="-114.4" cy="202.5" r="3.4"></circle><path class="tr" d="M-96.8 178.0 L-96.8 203.5"></path><circle class="via" cx="-96.8" cy="203.5" r="3.4"></circle><path class="tr" d="M-79.2 178.0 L-79.2 198.7"></path><circle class="via" cx="-79.2" cy="198.7" r="3.4"></circle><path class="tr" d="M-61.6 178.0 L-61.6 201.9"></path><circle class="via" cx="-61.6" cy="201.9" r="3.4"></circle><path class="tr" d="M-44.0 178.0 L-44.0 193.1"></path><circle class="via" cx="-44.0" cy="193.1" r="3.4"></circle><path class="tr" d="M-26.4 178.0 L-26.4 193.1"></path><circle class="via" cx="-26.4" cy="193.1" r="3.4"></circle><path class="tr" d="M-8.8 178.0 L-8.8 195.7"></path><circle class="via" cx="-8.8" cy="195.7" r="3.4"></circle><path class="tr" d="M8.8 178.0 L8.8 204.2"></path><circle class="via" cx="8.8" cy="204.2" r="3.4"></circle><path class="tr" d="M26.4 178.0 L26.4 199.7"></path><circle class="via" cx="26.4" cy="199.7" r="3.4"></circle><path class="tr" d="M44.0 178.0 L44.0 197.7"></path><circle class="via" cx="44.0" cy="197.7" r="3.4"></circle><path class="tr" d="M61.6 178.0 L61.6 202.5"></path><circle class="via" cx="61.6" cy="202.5" r="3.4"></circle><path class="tr" d="M79.2 178.0 L79.2 200.2"></path><circle class="via" cx="79.2" cy="200.2" r="3.4"></circle><path class="tr" d="M96.8 178.0 L96.8 197.4"></path><circle class="via" cx="96.8" cy="197.4" r="3.4"></circle><path class="tr" d="M114.4 178.0 L114.4 206.3"></path><circle class="via" cx="114.4" cy="206.3" r="3.4"></circle><path class="tr" d="M132.0 178.0 L132.0 204.6"></path><circle class="via" cx="132.0" cy="204.6" r="3.4"></circle></g>
+<g class="bus" data-part="ram"><path class="tr-glow" d="M178.0 -132.0 L200.0 -132.0 L318.8 -250.8 L389.0 -250.8 L461.3 -178.5 L480.0 -178.5"></path><path class="tr" d="M178.0 -132.0 L200.0 -132.0 L318.8 -250.8 L389.0 -250.8 L461.3 -178.5 L480.0 -178.5"></path><path class="tr-glow" d="M178.0 -114.4 L200.0 -114.4 L303.0 -217.4 L413.9 -217.4 L461.3 -170.0 L480.0 -170.0"></path><path class="tr" d="M178.0 -114.4 L200.0 -114.4 L303.0 -217.4 L413.9 -217.4 L461.3 -170.0 L480.0 -170.0"></path><path class="tr-glow" d="M178.0 -96.8 L200.0 -96.8 L287.1 -183.9 L438.9 -183.9 L461.3 -161.5 L480.0 -161.5"></path><path class="tr" d="M178.0 -96.8 L200.0 -96.8 L287.1 -183.9 L438.9 -183.9 L461.3 -161.5 L480.0 -161.5"></path><path class="tr-glow" d="M178.0 -79.2 L200.0 -79.2 L271.3 -150.5 L458.8 -150.5 L461.3 -153.0 L480.0 -153.0"></path><path class="tr" d="M178.0 -79.2 L200.0 -79.2 L271.3 -150.5 L458.8 -150.5 L461.3 -153.0 L480.0 -153.0"></path><path class="tr-glow" d="M178.0 -61.6 L200.0 -61.6 L255.4 -117.0 L412.3 -117.0 L461.3 -68.0 L480.0 -68.0"></path><path class="tr" d="M178.0 -61.6 L200.0 -61.6 L255.4 -117.0 L412.3 -117.0 L461.3 -68.0 L480.0 -68.0"></path><path class="tr-glow" d="M178.0 -44.0 L200.0 -44.0 L239.6 -83.6 L437.2 -83.6 L461.3 -59.5 L480.0 -59.5"></path><path class="tr" d="M178.0 -44.0 L200.0 -44.0 L239.6 -83.6 L437.2 -83.6 L461.3 -59.5 L480.0 -59.5"></path><path class="tr-glow" d="M178.0 -26.4 L200.0 -26.4 L223.8 -50.2 L460.5 -50.2 L461.3 -51.0 L480.0 -51.0"></path><path class="tr" d="M178.0 -26.4 L200.0 -26.4 L223.8 -50.2 L460.5 -50.2 L461.3 -51.0 L480.0 -51.0"></path><path class="tr-glow" d="M178.0 -8.8 L200.0 -8.8 L207.9 -16.7 L435.5 -16.7 L461.3 -42.5 L480.0 -42.5"></path><path class="tr" d="M178.0 -8.8 L200.0 -8.8 L207.9 -16.7 L435.5 -16.7 L461.3 -42.5 L480.0 -42.5"></path><path class="tr-glow" d="M178.0 8.8 L200.0 8.8 L207.9 16.7 L435.5 16.7 L461.3 42.5 L480.0 42.5"></path><path class="tr" d="M178.0 8.8 L200.0 8.8 L207.9 16.7 L435.5 16.7 L461.3 42.5 L480.0 42.5"></path><path class="tr-glow" d="M178.0 26.4 L200.0 26.4 L223.8 50.2 L460.5 50.2 L461.3 51.0 L480.0 51.0"></path><path class="tr" d="M178.0 26.4 L200.0 26.4 L223.8 50.2 L460.5 50.2 L461.3 51.0 L480.0 51.0"></path><path class="tr-glow" d="M178.0 44.0 L200.0 44.0 L239.6 83.6 L437.2 83.6 L461.3 59.5 L480.0 59.5"></path><path class="tr" d="M178.0 44.0 L200.0 44.0 L239.6 83.6 L437.2 83.6 L461.3 59.5 L480.0 59.5"></path><path class="tr-glow" d="M178.0 61.6 L200.0 61.6 L255.4 117.0 L412.3 117.0 L461.3 68.0 L480.0 68.0"></path><path class="tr" d="M178.0 61.6 L200.0 61.6 L255.4 117.0 L412.3 117.0 L461.3 68.0 L480.0 68.0"></path><path class="tr-glow" d="M178.0 79.2 L200.0 79.2 L271.3 150.5 L458.8 150.5 L461.3 153.0 L480.0 153.0"></path><path class="tr" d="M178.0 79.2 L200.0 79.2 L271.3 150.5 L458.8 150.5 L461.3 153.0 L480.0 153.0"></path><path class="tr-glow" d="M178.0 96.8 L200.0 96.8 L287.1 183.9 L438.9 183.9 L461.3 161.5 L480.0 161.5"></path><path class="tr" d="M178.0 96.8 L200.0 96.8 L287.1 183.9 L438.9 183.9 L461.3 161.5 L480.0 161.5"></path><path class="tr-glow" d="M178.0 114.4 L200.0 114.4 L303.0 217.4 L413.9 217.4 L461.3 170.0 L480.0 170.0"></path><path class="tr" d="M178.0 114.4 L200.0 114.4 L303.0 217.4 L413.9 217.4 L461.3 170.0 L480.0 170.0"></path><path class="tr-glow" d="M178.0 132.0 L200.0 132.0 L318.8 250.8 L389.0 250.8 L461.3 178.5 L480.0 178.5"></path><path class="tr" d="M178.0 132.0 L200.0 132.0 L318.8 250.8 L389.0 250.8 L461.3 178.5 L480.0 178.5"></path><path class="pulse" d="M178.0 -132.0 L200.0 -132.0 L318.8 -250.8 L389.0 -250.8 L461.3 -178.5 L480.0 -178.5" style="animation-duration: 5.80s; animation-delay: -3.15s"></path><path class="pulse" d="M178.0 -79.2 L200.0 -79.2 L271.3 -150.5 L458.8 -150.5 L461.3 -153.0 L480.0 -153.0" style="animation-duration: 7.42s; animation-delay: -0.71s"></path><path class="pulse" d="M178.0 -26.4 L200.0 -26.4 L223.8 -50.2 L460.5 -50.2 L461.3 -51.0 L480.0 -51.0" style="animation-duration: 5.46s; animation-delay: -0.24s"></path><path class="pulse" d="M178.0 61.6 L200.0 61.6 L255.4 117.0 L412.3 117.0 L461.3 68.0 L480.0 68.0" style="animation-duration: 6.28s; animation-delay: -3.57s"></path><path class="carrier" d="M178.0 8.8 L200.0 8.8 L207.9 16.7 L435.5 16.7 L461.3 42.5 L480.0 42.5"></path></g><g class="bus" data-part="ssd"><path class="tr-glow" d="M-178.0 -132.0 L-200.0 -132.0 L-239.6 -171.6 L-322.9 -171.6 L-445.7 -48.8 L-460.0 -48.8"></path><path class="tr" d="M-178.0 -132.0 L-200.0 -132.0 L-239.6 -171.6 L-322.9 -171.6 L-445.7 -48.8 L-460.0 -48.8"></path><path class="tr-glow" d="M-178.0 -114.4 L-200.0 -114.4 L-234.3 -148.7 L-339.2 -148.7 L-445.7 -42.2 L-460.0 -42.2"></path><path class="tr" d="M-178.0 -114.4 L-200.0 -114.4 L-234.3 -148.7 L-339.2 -148.7 L-445.7 -42.2 L-460.0 -42.2"></path><path class="tr-glow" d="M-178.0 -96.8 L-200.0 -96.8 L-229.0 -125.8 L-355.6 -125.8 L-445.7 -35.8 L-460.0 -35.8"></path><path class="tr" d="M-178.0 -96.8 L-200.0 -96.8 L-229.0 -125.8 L-355.6 -125.8 L-445.7 -35.8 L-460.0 -35.8"></path><path class="tr-glow" d="M-178.0 -79.2 L-200.0 -79.2 L-223.8 -103.0 L-372.0 -103.0 L-445.7 -29.2 L-460.0 -29.2"></path><path class="tr" d="M-178.0 -79.2 L-200.0 -79.2 L-223.8 -103.0 L-372.0 -103.0 L-445.7 -29.2 L-460.0 -29.2"></path><path class="tr-glow" d="M-178.0 -61.6 L-200.0 -61.6 L-218.5 -80.1 L-388.4 -80.1 L-445.7 -22.8 L-460.0 -22.8"></path><path class="tr" d="M-178.0 -61.6 L-200.0 -61.6 L-218.5 -80.1 L-388.4 -80.1 L-445.7 -22.8 L-460.0 -22.8"></path><path class="tr-glow" d="M-178.0 -44.0 L-200.0 -44.0 L-213.2 -57.2 L-404.8 -57.2 L-445.7 -16.2 L-460.0 -16.2"></path><path class="tr" d="M-178.0 -44.0 L-200.0 -44.0 L-213.2 -57.2 L-404.8 -57.2 L-445.7 -16.2 L-460.0 -16.2"></path><path class="tr-glow" d="M-178.0 -26.4 L-200.0 -26.4 L-207.9 -34.3 L-421.1 -34.3 L-445.7 -9.8 L-460.0 -9.8"></path><path class="tr" d="M-178.0 -26.4 L-200.0 -26.4 L-207.9 -34.3 L-421.1 -34.3 L-445.7 -9.8 L-460.0 -9.8"></path><path class="tr-glow" d="M-178.0 -8.8 L-200.0 -8.8 L-202.6 -11.4 L-437.5 -11.4 L-445.7 -3.2 L-460.0 -3.2"></path><path class="tr" d="M-178.0 -8.8 L-200.0 -8.8 L-202.6 -11.4 L-437.5 -11.4 L-445.7 -3.2 L-460.0 -3.2"></path><path class="tr-glow" d="M-178.0 8.8 L-200.0 8.8 L-202.6 11.4 L-437.5 11.4 L-445.7 3.2 L-460.0 3.2"></path><path class="tr" d="M-178.0 8.8 L-200.0 8.8 L-202.6 11.4 L-437.5 11.4 L-445.7 3.2 L-460.0 3.2"></path><path class="tr-glow" d="M-178.0 26.4 L-200.0 26.4 L-207.9 34.3 L-421.1 34.3 L-445.7 9.8 L-460.0 9.8"></path><path class="tr" d="M-178.0 26.4 L-200.0 26.4 L-207.9 34.3 L-421.1 34.3 L-445.7 9.8 L-460.0 9.8"></path><path class="tr-glow" d="M-178.0 44.0 L-200.0 44.0 L-213.2 57.2 L-404.8 57.2 L-445.7 16.2 L-460.0 16.2"></path><path class="tr" d="M-178.0 44.0 L-200.0 44.0 L-213.2 57.2 L-404.8 57.2 L-445.7 16.2 L-460.0 16.2"></path><path class="tr-glow" d="M-178.0 61.6 L-200.0 61.6 L-218.5 80.1 L-388.4 80.1 L-445.7 22.8 L-460.0 22.8"></path><path class="tr" d="M-178.0 61.6 L-200.0 61.6 L-218.5 80.1 L-388.4 80.1 L-445.7 22.8 L-460.0 22.8"></path><path class="tr-glow" d="M-178.0 79.2 L-200.0 79.2 L-223.8 103.0 L-372.0 103.0 L-445.7 29.2 L-460.0 29.2"></path><path class="tr" d="M-178.0 79.2 L-200.0 79.2 L-223.8 103.0 L-372.0 103.0 L-445.7 29.2 L-460.0 29.2"></path><path class="tr-glow" d="M-178.0 96.8 L-200.0 96.8 L-229.0 125.8 L-355.6 125.8 L-445.7 35.8 L-460.0 35.8"></path><path class="tr" d="M-178.0 96.8 L-200.0 96.8 L-229.0 125.8 L-355.6 125.8 L-445.7 35.8 L-460.0 35.8"></path><path class="tr-glow" d="M-178.0 114.4 L-200.0 114.4 L-234.3 148.7 L-339.2 148.7 L-445.7 42.2 L-460.0 42.2"></path><path class="tr" d="M-178.0 114.4 L-200.0 114.4 L-234.3 148.7 L-339.2 148.7 L-445.7 42.2 L-460.0 42.2"></path><path class="tr-glow" d="M-178.0 132.0 L-200.0 132.0 L-239.6 171.6 L-322.9 171.6 L-445.7 48.8 L-460.0 48.8"></path><path class="tr" d="M-178.0 132.0 L-200.0 132.0 L-239.6 171.6 L-322.9 171.6 L-445.7 48.8 L-460.0 48.8"></path><path class="pulse" d="M-178.0 -96.8 L-200.0 -96.8 L-229.0 -125.8 L-355.6 -125.8 L-445.7 -35.8 L-460.0 -35.8" style="animation-duration: 6.31s; animation-delay: -3.88s"></path><path class="pulse" d="M-178.0 -44.0 L-200.0 -44.0 L-213.2 -57.2 L-404.8 -57.2 L-445.7 -16.2 L-460.0 -16.2" style="animation-duration: 5.04s; animation-delay: -4.01s"></path><path class="pulse" d="M-178.0 -26.4 L-200.0 -26.4 L-207.9 -34.3 L-421.1 -34.3 L-445.7 -9.8 L-460.0 -9.8" style="animation-duration: 5.35s; animation-delay: -1.01s"></path><path class="pulse" d="M-178.0 -8.8 L-200.0 -8.8 L-202.6 -11.4 L-437.5 -11.4 L-445.7 -3.2 L-460.0 -3.2" style="animation-duration: 3.74s; animation-delay: -4.61s"></path><path class="pulse" d="M-178.0 8.8 L-200.0 8.8 L-202.6 11.4 L-437.5 11.4 L-445.7 3.2 L-460.0 3.2" style="animation-duration: 4.49s; animation-delay: -2.35s"></path><path class="pulse" d="M-178.0 44.0 L-200.0 44.0 L-213.2 57.2 L-404.8 57.2 L-445.7 16.2 L-460.0 16.2" style="animation-duration: 5.30s; animation-delay: -3.30s"></path><path class="pulse" d="M-178.0 114.4 L-200.0 114.4 L-234.3 148.7 L-339.2 148.7 L-445.7 42.2 L-460.0 42.2" style="animation-duration: 5.16s; animation-delay: -2.15s"></path><path class="carrier" d="M-178.0 8.8 L-200.0 8.8 L-202.6 11.4 L-437.5 11.4 L-445.7 3.2 L-460.0 3.2"></path></g><g class="bus" data-part="gpu"><path class="tr-glow" d="M-132.0 -178.0 L-132.0 -200.0 L-119.2 -212.8 L-119.2 -386.0"></path><path class="tr" d="M-132.0 -178.0 L-132.0 -200.0 L-119.2 -212.8 L-119.2 -386.0"></path><path class="tr-glow" d="M-114.4 -178.0 L-114.4 -200.0 L-103.9 -210.6 L-103.9 -386.0"></path><path class="tr" d="M-114.4 -178.0 L-114.4 -200.0 L-103.9 -210.6 L-103.9 -386.0"></path><path class="tr-glow" d="M-96.8 -178.0 L-96.8 -200.0 L-88.6 -208.2 L-88.6 -386.0"></path><path class="tr" d="M-96.8 -178.0 L-96.8 -200.0 L-88.6 -208.2 L-88.6 -386.0"></path><path class="tr-glow" d="M-79.2 -178.0 L-79.2 -200.0 L-73.2 -205.9 L-73.2 -386.0"></path><path class="tr" d="M-79.2 -178.0 L-79.2 -200.0 L-73.2 -205.9 L-73.2 -386.0"></path><path class="tr-glow" d="M-61.6 -178.0 L-61.6 -200.0 L-58.0 -203.6 L-58.0 -386.0"></path><path class="tr" d="M-61.6 -178.0 L-61.6 -200.0 L-58.0 -203.6 L-58.0 -386.0"></path><path class="tr-glow" d="M-44.0 -178.0 L-44.0 -200.0 L-42.6 -201.3 L-42.6 -386.0"></path><path class="tr" d="M-44.0 -178.0 L-44.0 -200.0 L-42.6 -201.3 L-42.6 -386.0"></path><path class="tr-glow" d="M-26.4 -178.0 L-26.4 -200.0 L-27.4 -201.0 L-27.4 -386.0"></path><path class="tr" d="M-26.4 -178.0 L-26.4 -200.0 L-27.4 -201.0 L-27.4 -386.0"></path><path class="tr-glow" d="M-8.8 -178.0 L-8.8 -200.0 L-12.1 -203.3 L-12.1 -386.0"></path><path class="tr" d="M-8.8 -178.0 L-8.8 -200.0 L-12.1 -203.3 L-12.1 -386.0"></path><path class="tr-glow" d="M8.8 -178.0 L8.8 -200.0 L3.2 -205.6 L3.2 -386.0"></path><path class="tr" d="M8.8 -178.0 L8.8 -200.0 L3.2 -205.6 L3.2 -386.0"></path><path class="tr-glow" d="M26.4 -178.0 L26.4 -200.0 L18.6 -207.8 L18.6 -386.0"></path><path class="tr" d="M26.4 -178.0 L26.4 -200.0 L18.6 -207.8 L18.6 -386.0"></path><path class="tr-glow" d="M44.0 -178.0 L44.0 -200.0 L33.9 -210.1 L33.9 -386.0"></path><path class="tr" d="M44.0 -178.0 L44.0 -200.0 L33.9 -210.1 L33.9 -386.0"></path><path class="tr-glow" d="M61.6 -178.0 L61.6 -200.0 L49.2 -212.5 L49.2 -386.0"></path><path class="tr" d="M61.6 -178.0 L61.6 -200.0 L49.2 -212.5 L49.2 -386.0"></path><path class="pulse" d="M-114.4 -178.0 L-114.4 -200.0 L-103.9 -210.6 L-103.9 -386.0" style="animation-duration: 4.20s; animation-delay: -1.39s"></path><path class="pulse" d="M-96.8 -178.0 L-96.8 -200.0 L-88.6 -208.2 L-88.6 -386.0" style="animation-duration: 5.44s; animation-delay: -3.53s"></path><path class="pulse" d="M-79.2 -178.0 L-79.2 -200.0 L-73.2 -205.9 L-73.2 -386.0" style="animation-duration: 3.52s; animation-delay: -2.51s"></path><path class="pulse" d="M-61.6 -178.0 L-61.6 -200.0 L-58.0 -203.6 L-58.0 -386.0" style="animation-duration: 5.77s; animation-delay: -5.72s"></path><path class="pulse" d="M26.4 -178.0 L26.4 -200.0 L18.6 -207.8 L18.6 -386.0" style="animation-duration: 7.10s; animation-delay: -4.68s"></path><path class="carrier" d="M-26.4 -178.0 L-26.4 -200.0 L-27.4 -201.0 L-27.4 -386.0"></path></g><g class="bus" data-part="nic"><path class="tr-glow" d="M79.2 -178.0 L79.2 -297.8 L109.2 -327.8 L959.9 -327.8 L989.9 -357.8 L989.9 -386.0"></path><path class="tr" d="M79.2 -178.0 L79.2 -297.8 L109.2 -327.8 L959.9 -327.8 L989.9 -357.8 L989.9 -386.0"></path><path class="tr-glow" d="M96.8 -178.0 L96.8 -280.2 L126.8 -310.2 L972.5 -310.2 L1002.5 -340.2 L1002.5 -386.0"></path><path class="tr" d="M96.8 -178.0 L96.8 -280.2 L126.8 -310.2 L972.5 -310.2 L1002.5 -340.2 L1002.5 -386.0"></path><path class="tr-glow" d="M114.4 -178.0 L114.4 -262.6 L144.4 -292.6 L985.1 -292.6 L1015.1 -322.6 L1015.1 -386.0"></path><path class="tr" d="M114.4 -178.0 L114.4 -262.6 L144.4 -292.6 L985.1 -292.6 L1015.1 -322.6 L1015.1 -386.0"></path><path class="tr-glow" d="M132.0 -178.0 L132.0 -245.0 L162.0 -275.0 L997.7 -275.0 L1027.7 -305.0 L1027.7 -386.0"></path><path class="tr" d="M132.0 -178.0 L132.0 -245.0 L162.0 -275.0 L997.7 -275.0 L1027.7 -305.0 L1027.7 -386.0"></path><path class="pulse" d="M79.2 -178.0 L79.2 -297.8 L109.2 -327.8 L959.9 -327.8 L989.9 -357.8 L989.9 -386.0" style="animation-duration: 5.10s; animation-delay: -0.62s"></path><path class="pulse" d="M114.4 -178.0 L114.4 -262.6 L144.4 -292.6 L985.1 -292.6 L1015.1 -322.6 L1015.1 -386.0" style="animation-duration: 3.77s; animation-delay: -1.25s"></path><path class="pulse" d="M132.0 -178.0 L132.0 -245.0 L162.0 -275.0 L997.7 -275.0 L1027.7 -305.0 L1027.7 -386.0" style="animation-duration: 4.86s; animation-delay: -0.32s"></path><path class="carrier" d="M114.4 -178.0 L114.4 -262.6 L144.4 -292.6 L985.1 -292.6 L1015.1 -322.6 L1015.1 -386.0"></path></g>
+<rect class="slot" x="-315.0" y="-400" width="560.0" height="14"></rect><rect class="slot" x="809.8" y="-400" width="398.0" height="14"></rect>
+<g class="partw" data-part="ssd" tabindex="0" role="button" aria-label="Experience"><g transform="translate(-1266 -325) scale(0.65)">
+<path class="body" d="M300 380 H1240 V466 H1230 V484 H1240 V620 H300 V524 A24 24 0 0 0 300 476 Z"></path>
+<circle class="body" cx="300" cy="500" r="14"></circle><path class="ln" d="M293 500 h14"></path>
+<path class="gold" d="M1214 394 H1240 M1214 402 H1240 M1214 410 H1240 M1214 418 H1240 M1214 426 H1240 M1214 434 H1240 M1214 442 H1240 M1214 450 H1240 M1214 458 H1240 M1214 490 H1240 M1214 498 H1240 M1214 506 H1240 M1214 514 H1240 M1214 522 H1240 M1214 530 H1240 M1214 538 H1240 M1214 546 H1240 M1214 554 H1240 M1214 562 H1240 M1214 570 H1240 M1214 578 H1240 M1214 586 H1240 M1214 594 H1240 M1214 602 H1240 "></path>
+<text class="etch dim" x="340" y="404" style="font-size: 9px; letter-spacing: .2em">M.2 2280 · NVMe · EXPERIENCE</text>
+<text class="etch dim" x="1200" y="404" text-anchor="end" style="font-size: 9px; letter-spacing: .2em">TO CPU →</text>
+<path class="ln" d="M370 590 H1196"></path>
+<path class="ln" d="M1188 586 l8 4 l-8 4"></path>
+<path class="ln" d="M370 594 v-10"></path><text class="etch dim" x="370" y="610" text-anchor="middle" style="font-size: 9px; letter-spacing: .12em">[2019]</text><path class="ln" d="M630 594 v-10"></path><text class="etch dim" x="630" y="610" text-anchor="middle" style="font-size: 9px; letter-spacing: .12em">[2021]</text><path class="ln" d="M900 594 v-10"></path><text class="etch dim" x="900" y="610" text-anchor="middle" style="font-size: 9px; letter-spacing: .12em">[2023]</text>
+<text class="etch now" x="1196" y="610" text-anchor="end" style="font-size: 9px; letter-spacing: .12em">NOW</text>
+<g class="part" data-key="r1" tabindex="0" aria-label="[Backend Developer] at [Company], [2019] – [2021]">
+  <rect class="body" x="370" y="418" width="230" height="160" rx="1"></rect>
+  <rect class="lid" x="378" y="426" width="214" height="144" rx="1"></rect>
+  <path class="ln" d="M385 563 v-10 l10 10 z"></path>
+  <text class="etch dim" x="485.0" y="454" text-anchor="middle" style="font-size: 9px; letter-spacing: .2em">NAND · [2019] – [2021]</text>
+  <text class="etch" x="485.0" y="492" text-anchor="middle" style="font-size: 19px; font-weight: 800; letter-spacing: .04em">[Company]</text>
+  <text class="etch" x="485.0" y="516" text-anchor="middle" style="font-size: 10px; font-weight: 600; letter-spacing: .06em">[Backend Developer]</text>
+  
+</g><g class="part" data-key="r2" tabindex="0" aria-label="[Software Engineer] at [Company], [2021] – [2023]">
+  <rect class="body" x="630" y="418" width="230" height="160" rx="1"></rect>
+  <rect class="lid" x="638" y="426" width="214" height="144" rx="1"></rect>
+  <path class="ln" d="M645 563 v-10 l10 10 z"></path>
+  <text class="etch dim" x="745.0" y="454" text-anchor="middle" style="font-size: 9px; letter-spacing: .2em">NAND · [2021] – [2023]</text>
+  <text class="etch" x="745.0" y="492" text-anchor="middle" style="font-size: 19px; font-weight: 800; letter-spacing: .04em">[Company]</text>
+  <text class="etch" x="745.0" y="516" text-anchor="middle" style="font-size: 10px; font-weight: 600; letter-spacing: .06em">[Software Engineer]</text>
+  
+</g><g class="part" data-key="r3" tabindex="0" aria-label="[Senior Software Engineer] at [Company], [2023] – NOW">
+  <rect class="body" x="900" y="418" width="210" height="160" rx="1"></rect>
+  <rect class="lid" x="908" y="426" width="194" height="144" rx="1"></rect>
+  <path class="ln" d="M915 563 v-10 l10 10 z"></path>
+  <text class="etch dim" x="1005.0" y="454" text-anchor="middle" style="font-size: 9px; letter-spacing: .2em">CTRL · [2023] – NOW</text>
+  <text class="etch" x="1005.0" y="492" text-anchor="middle" style="font-size: 19px; font-weight: 800; letter-spacing: .04em">[Company]</text>
+  <text class="etch" x="1005.0" y="516" text-anchor="middle" style="font-size: 10px; font-weight: 600; letter-spacing: .06em">[Senior Software Engineer]</text>
+  <text class="etch now" x="1005.0" y="552" text-anchor="middle" style="font-size: 9px; letter-spacing: .2em">● CURRENT</text>
+</g>
+</g></g>
+<g class="partw" data-part="gpu" tabindex="0" role="button" aria-label="Projects"><g transform="translate(-755 -1039) scale(0.9)">
+<rect class="body" x="420" y="270" width="760" height="440" rx="3"></rect>
+<rect class="body" x="400" y="260" width="20" height="460"></rect><rect class="ln" x="404" y="300" width="8" height="54"></rect><rect class="ln" x="404" y="380" width="8" height="54"></rect><rect class="ln" x="404" y="460" width="8" height="54"></rect><rect class="ln" x="404" y="540" width="8" height="54"></rect>
+<rect class="body" x="1040" y="254" width="80" height="16"></rect><rect class="ln" x="1046" y="258" width="7" height="7"></rect><rect class="ln" x="1058" y="258" width="7" height="7"></rect><rect class="ln" x="1070" y="258" width="7" height="7"></rect><rect class="ln" x="1082" y="258" width="7" height="7"></rect><rect class="ln" x="1094" y="258" width="7" height="7"></rect><rect class="ln" x="1106" y="258" width="7" height="7"></rect>
+<path class="gold" d="M500 694 V708 M506 694 V708 M512 694 V708 M518 694 V708 M524 694 V708 M530 694 V708 M536 694 V708 M542 694 V708 M548 694 V708 M554 694 V708 M560 694 V708 M566 694 V708 M572 694 V708 M578 694 V708 M584 694 V708 M590 694 V708 M596 694 V708 M602 694 V708 M608 694 V708 M614 694 V708 M620 694 V708 M626 694 V708 M632 694 V708 M656 694 V708 M662 694 V708 M668 694 V708 M674 694 V708 M680 694 V708 M686 694 V708 M692 694 V708 M698 694 V708 M704 694 V708 M710 694 V708 M716 694 V708 M722 694 V708 M728 694 V708 M734 694 V708 M740 694 V708 M746 694 V708 M752 694 V708 M758 694 V708 M764 694 V708 M770 694 V708 M776 694 V708 M782 694 V708 M788 694 V708 M794 694 V708 M800 694 V708 M806 694 V708 M812 694 V708 M818 694 V708 M824 694 V708 M830 694 V708 M836 694 V708 M842 694 V708 M848 694 V708 M854 694 V708 M860 694 V708 M866 694 V708 M872 694 V708 M878 694 V708 M884 694 V708 M890 694 V708 M896 694 V708 M902 694 V708 M908 694 V708 M914 694 V708 M920 694 V708 M926 694 V708 M932 694 V708 M938 694 V708 M944 694 V708 M950 694 V708 M956 694 V708 M962 694 V708 M968 694 V708 M974 694 V708 M980 694 V708 M986 694 V708 M992 694 V708 M998 694 V708 M1004 694 V708 M1010 694 V708 M1016 694 V708 M1022 694 V708 M1028 694 V708 M1034 694 V708 M1040 694 V708 M1046 694 V708 M1052 694 V708 M1058 694 V708 M1064 694 V708 M1070 694 V708 M1076 694 V708 M1082 694 V708 M1088 694 V708 M1094 694 V708 "></path>
+<text class="etch dim" x="444" y="296" style="font-size: 9px; letter-spacing: .2em">PCIEX16 · BACKSIDE · PROJECTS</text>
+<path class="rt" data-key="p1" d="M730 390 H752 L797 345 H820"></path><path class="rt" data-key="p1" d="M730 400 H752 L797 355 H820"></path><path class="rt" data-key="p1" d="M730 410 H752 L797 365 H820"></path><path class="rt" data-key="p2" d="M730 485 H752 L752 485 H820"></path><path class="rt" data-key="p2" d="M730 495 H752 L752 495 H820"></path><path class="rt" data-key="p2" d="M730 505 H752 L752 505 H820"></path><path class="rt" data-key="p3" d="M730 580 H752 L797 625 H820"></path><path class="rt" data-key="p3" d="M730 590 H752 L797 635 H820"></path><path class="rt" data-key="p3" d="M730 600 H752 L797 645 H820"></path>
+<path class="ln" d="M496 350 v10 M496 620 v10 M460 386 h10 M515 350 v10 M515 620 v10 M460 405 h10 M534 350 v10 M534 620 v10 M460 424 h10 M553 350 v10 M553 620 v10 M460 443 h10 M572 350 v10 M572 620 v10 M460 462 h10 M591 350 v10 M591 620 v10 M460 481 h10 M610 350 v10 M610 620 v10 M460 500 h10 M629 350 v10 M629 620 v10 M460 519 h10 M648 350 v10 M648 620 v10 M460 538 h10 M667 350 v10 M667 620 v10 M460 557 h10 M686 350 v10 M686 620 v10 M460 576 h10 M705 350 v10 M705 620 v10 M460 595 h10 "></path>
+<rect class="body" x="470" y="360" width="260" height="260" rx="2"></rect>
+<rect class="lid" x="520" y="410" width="160" height="160" rx="1"></rect>
+<path class="ln" d="M482 608 v-12 l12 12 z"></path>
+<text class="etch" x="600.0" y="488.0" text-anchor="middle" style="font-size: 34px; font-weight: 800; letter-spacing: .06em">GPU</text>
+<text class="etch" x="600.0" y="512.0" text-anchor="middle" style="font-size: 10px; font-weight: 600; letter-spacing: .2em">LEE-RENDER</text>
+<text class="etch dim" x="600.0" y="530.0" text-anchor="middle" style="font-size: 8.5px; letter-spacing: .18em">3 PROJECTS SHIPPED</text>
+<g class="part" data-key="p1" tabindex="0" aria-label="Project 1: [project-one]">
+  <rect class="body" x="820" y="300" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="308" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 395 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="330" style="font-size: 9px; letter-spacing: .2em">VRAM_01</text>
+  <text class="etch" x="970.0" y="360" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-one]</text>
+  <text class="etch dim" x="970.0" y="382" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">DJANGO · CELERY · REDIS</text>
+</g><g class="part" data-key="p2" tabindex="0" aria-label="Project 2: [project-two]">
+  <rect class="body" x="820" y="440" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="448" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 535 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="470" style="font-size: 9px; letter-spacing: .2em">VRAM_02</text>
+  <text class="etch" x="970.0" y="500" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-two]</text>
+  <text class="etch dim" x="970.0" y="522" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">POSTGRESQL · DRF</text>
+</g><g class="part" data-key="p3" tabindex="0" aria-label="Project 3: [project-three]">
+  <rect class="body" x="820" y="580" width="300" height="110" rx="1"></rect>
+  <rect class="lid" x="828" y="588" width="284" height="94" rx="1"></rect>
+  <path class="ln" d="M835 675 v-9 l9 9 z"></path>
+  <text class="etch dim" x="844" y="610" style="font-size: 9px; letter-spacing: .2em">VRAM_03</text>
+  <text class="etch" x="970.0" y="640" text-anchor="middle" style="font-size: 18px; font-weight: 800">[project-three]</text>
+  <text class="etch dim" x="970.0" y="662" text-anchor="middle" style="font-size: 9.5px; letter-spacing: .12em">AWS · DOCKER</text>
+</g>
+</g></g>
+<g class="partw" data-part="nic" tabindex="0" role="button" aria-label="Contact"><g transform="translate(357.8 -848) scale(0.7)">
+<rect class="body" x="400" y="300" width="860" height="340" rx="3"></rect>
+<circle class="body" cx="1238" cy="322" r="7"></circle><circle class="body" cx="1238" cy="600" r="7"></circle>
+<path class="lanes" d="M508 353 H560 M630 353 H660 L713 406 H730 M508 361 H560 M630 361 H660 L713 414 H730 M508 433 H560 M630 433 H660 L673 446 H730 M508 441 H560 M630 441 H660 L673 454 H730 M508 513 H560 M630 513 H660 L687 486 H730 M508 521 H560 M630 521 H660 L687 494 H730 M508 593 H560 M630 593 H660 L727 526 H730 M508 601 H560 M630 601 H660 L727 534 H730 M930 356 H1000 M930 356 H1110 M930 446 H1000 M930 446 H1110 "></path>
+<g class="part" data-key="phy"><path class="ln" d="M568.0 331 v6 M568.0 377 v6 M578.8 331 v6 M578.8 377 v6 M589.6 331 v6 M589.6 377 v6 M600.4 331 v6 M600.4 377 v6 M611.2 331 v6 M611.2 377 v6 M622.0 331 v6 M622.0 377 v6 "></path><rect class="body" x="560" y="337" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="360.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 411 v6 M568.0 457 v6 M578.8 411 v6 M578.8 457 v6 M589.6 411 v6 M589.6 457 v6 M600.4 411 v6 M600.4 457 v6 M611.2 411 v6 M611.2 457 v6 M622.0 411 v6 M622.0 457 v6 "></path><rect class="body" x="560" y="417" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="440.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 491 v6 M568.0 537 v6 M578.8 491 v6 M578.8 537 v6 M589.6 491 v6 M589.6 537 v6 M600.4 491 v6 M600.4 537 v6 M611.2 491 v6 M611.2 537 v6 M622.0 491 v6 M622.0 537 v6 "></path><rect class="body" x="560" y="497" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="520.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text>
+<path class="ln" d="M568.0 571 v6 M568.0 617 v6 M578.8 571 v6 M578.8 617 v6 M589.6 571 v6 M589.6 617 v6 M600.4 571 v6 M600.4 617 v6 M611.2 571 v6 M611.2 617 v6 M622.0 571 v6 M622.0 617 v6 "></path><rect class="body" x="560" y="577" width="70" height="40" rx="1"></rect><text class="etch dim" x="595.0" y="600.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">PHY</text></g>
+<g class="part" data-key="port" tabindex="0" aria-label="Ethernet ports">
+<rect class="body" x="360" y="260" width="40" height="420"></rect>
+<path class="ln" d="M360 260 h-14 v24 h14 M360 680 h-14 v-24 h14"></path>
+<rect class="body" x="396" y="322" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="330" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 338 v12 M436 338 v12 M442 338 v12 M448 338 v12 M454 338 v12 M460 338 v12 M466 338 v12 M472 338 v12 "></path>
+<path class="body hole" d="M364 334 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="332" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -0.0s" x="492" y="374" width="10" height="7"></rect>
+<rect class="body" x="396" y="402" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="410" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 418 v12 M436 418 v12 M442 418 v12 M448 418 v12 M454 418 v12 M460 418 v12 M466 418 v12 M472 418 v12 "></path>
+<path class="body hole" d="M364 414 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="412" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -0.7s" x="492" y="454" width="10" height="7"></rect>
+<rect class="body" x="396" y="482" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="490" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 498 v12 M436 498 v12 M442 498 v12 M448 498 v12 M454 498 v12 M460 498 v12 M466 498 v12 M472 498 v12 "></path>
+<path class="body hole" d="M364 494 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="492" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -1.4s" x="492" y="534" width="10" height="7"></rect>
+<rect class="body" x="396" y="562" width="112" height="70" rx="1"></rect>
+<rect class="lid" x="406" y="570" width="84" height="54" rx="1"></rect>
+<path class="ln" d="M430 578 v12 M436 578 v12 M442 578 v12 M448 578 v12 M454 578 v12 M460 578 v12 M466 578 v12 M472 578 v12 "></path>
+<path class="body hole" d="M364 574 h26 v-4 h8 v4 h-2 v46 h-32 z"></path>
+<rect class="led-link" x="492" y="572" width="10" height="7"></rect>
+<rect class="led-act" style="animation-delay: -2.1s" x="492" y="614" width="10" height="7"></rect>
+</g>
+<g class="part" data-key="buf" tabindex="0" aria-label="Memory buffers">
+  <path class="ln" d="M1008.0 324 v6 M1008.0 382 v6 M1022.8 324 v6 M1022.8 382 v6 M1037.6 324 v6 M1037.6 382 v6 M1052.4 324 v6 M1052.4 382 v6 M1067.2 324 v6 M1067.2 382 v6 M1082.0 324 v6 M1082.0 382 v6 "></path><rect class="body" x="1000" y="330" width="90" height="52" rx="1"></rect><text class="etch dim" x="1045.0" y="359.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1118.0 324 v6 M1118.0 382 v6 M1132.8 324 v6 M1132.8 382 v6 M1147.6 324 v6 M1147.6 382 v6 M1162.4 324 v6 M1162.4 382 v6 M1177.2 324 v6 M1177.2 382 v6 M1192.0 324 v6 M1192.0 382 v6 "></path><rect class="body" x="1110" y="330" width="90" height="52" rx="1"></rect><text class="etch dim" x="1155.0" y="359.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1008.0 414 v6 M1008.0 472 v6 M1022.8 414 v6 M1022.8 472 v6 M1037.6 414 v6 M1037.6 472 v6 M1052.4 414 v6 M1052.4 472 v6 M1067.2 414 v6 M1067.2 472 v6 M1082.0 414 v6 M1082.0 472 v6 "></path><rect class="body" x="1000" y="420" width="90" height="52" rx="1"></rect><text class="etch dim" x="1045.0" y="449.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text><path class="ln" d="M1118.0 414 v6 M1118.0 472 v6 M1132.8 414 v6 M1132.8 472 v6 M1147.6 414 v6 M1147.6 472 v6 M1162.4 414 v6 M1162.4 472 v6 M1177.2 414 v6 M1177.2 472 v6 M1192.0 414 v6 M1192.0 472 v6 "></path><rect class="body" x="1110" y="420" width="90" height="52" rx="1"></rect><text class="etch dim" x="1155.0" y="449.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">BUFFER</text>
+</g>
+<g class="part asic" data-key="ctrl" tabindex="0" aria-label="Controller">
+  <rect class="halo" x="700" y="340" width="260" height="260" rx="16"></rect>
+  <path class="ln" d="M744 358 v12 M744 570 v12 M718 384 h12 M930 384 h12 M756 358 v12 M756 570 v12 M718 396 h12 M930 396 h12 M768 358 v12 M768 570 v12 M718 408 h12 M930 408 h12 M780 358 v12 M780 570 v12 M718 420 h12 M930 420 h12 M792 358 v12 M792 570 v12 M718 432 h12 M930 432 h12 M804 358 v12 M804 570 v12 M718 444 h12 M930 444 h12 M816 358 v12 M816 570 v12 M718 456 h12 M930 456 h12 M828 358 v12 M828 570 v12 M718 468 h12 M930 468 h12 M840 358 v12 M840 570 v12 M718 480 h12 M930 480 h12 M852 358 v12 M852 570 v12 M718 492 h12 M930 492 h12 M864 358 v12 M864 570 v12 M718 504 h12 M930 504 h12 M876 358 v12 M876 570 v12 M718 516 h12 M930 516 h12 M888 358 v12 M888 570 v12 M718 528 h12 M930 528 h12 M900 358 v12 M900 570 v12 M718 540 h12 M930 540 h12 M912 358 v12 M912 570 v12 M718 552 h12 M930 552 h12 "></path>
+  <rect class="body" x="730" y="370" width="200" height="200" rx="2"></rect>
+  <rect class="lid core" x="760" y="400" width="140" height="140" rx="2"></rect>
+  <path class="ln" d="M742 558 v-12 l12 12 z"></path>
+  <text class="etch" x="830.0" y="468.0" text-anchor="middle" style="font-size: 30px; font-weight: 800; letter-spacing: .06em">LEE</text>
+  <text class="etch" x="830.0" y="490.0" text-anchor="middle" style="font-size: 9px; font-weight: 600; letter-spacing: .2em">NIC CONTROLLER</text>
+  <text class="etch dim" x="830.0" y="506.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .16em">LINK READY</text>
+</g>
+<g class="part" data-key="bus" tabindex="0" aria-label="PCIe connector">
+  <path class="gold" d="M660 622 V640 M666 622 V640 M672 622 V640 M678 622 V640 M684 622 V640 M690 622 V640 M696 622 V640 M702 622 V640 M708 622 V640 M714 622 V640 M720 622 V640 M726 622 V640 M732 622 V640 M738 622 V640 M744 622 V640 M750 622 V640 M756 622 V640 M762 622 V640 M768 622 V640 M786 622 V640 M792 622 V640 M798 622 V640 M804 622 V640 M810 622 V640 M816 622 V640 M822 622 V640 M828 622 V640 M834 622 V640 M840 622 V640 M846 622 V640 M852 622 V640 M858 622 V640 M864 622 V640 M870 622 V640 M876 622 V640 M882 622 V640 M888 622 V640 M894 622 V640 M900 622 V640 M906 622 V640 M912 622 V640 M918 622 V640 M924 622 V640 M930 622 V640 M936 622 V640 M942 622 V640 M948 622 V640 M954 622 V640 M960 622 V640 M966 622 V640 M972 622 V640 M978 622 V640 M984 622 V640 M990 622 V640 M996 622 V640 M1002 622 V640 M1008 622 V640 M1014 622 V640 M1020 622 V640 M1026 622 V640 M1032 622 V640 M1038 622 V640 M1044 622 V640 M1050 622 V640 M1056 622 V640 M1062 622 V640 M1068 622 V640 M1074 622 V640 M1080 622 V640 M1086 622 V640 M1092 622 V640 M1098 622 V640 M1104 622 V640 M1110 622 V640 M1116 622 V640 M1122 622 V640 M1128 622 V640 M1134 622 V640 M1140 622 V640 M1146 622 V640 M1152 622 V640 M1158 622 V640 M1164 622 V640 M1170 622 V640 M1176 622 V640 M1182 622 V640 M1188 622 V640 M1194 622 V640 "></path>
+  <text class="etch dim" x="1230" y="614" text-anchor="end" style="font-size: 9px; letter-spacing: .2em">PCIe 5.0 x16</text>
+</g>
+<text class="etch dim" x="530" y="324" style="font-size: 9px; letter-spacing: .2em">LEE-NIC · 4× 2.5 GbE</text>
+</g></g>
+<g class="partw" data-part="ram" tabindex="0" role="button" aria-label="Skills"><g transform="translate(126.4 -430.95) scale(0.85)"><g class="part" data-key="s0" tabindex="0" aria-label="Languages: Python, SQL, C++">
+<rect class="body" x="440" y="260" width="720" height="104" rx="2"></rect>
+<path class="gold" d="M442 268 H460 M442 273 H460 M442 278 H460 M442 283 H460 M442 288 H460 M442 293 H460 M442 298 H460 M442 303 H460 M442 313 H460 M442 318 H460 M442 323 H460 M442 328 H460 M442 333 H460 M442 338 H460 M442 343 H460 M442 348 H460 M442 353 H460 "></path>
+<rect class="body" x="480" y="270" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="487" y="277" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M492 342 v-8 l8 8 z"></path>
+<text class="etch" x="562.0" y="306" text-anchor="middle" style="font-size: 16px; font-weight: 700">Python</text>
+<text class="etch dim" x="562.0" y="322" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · DAILY</text>
+<rect class="led on" x="540.0" y="332" width="12" height="6"></rect>
+<rect class="led on" x="556.0" y="332" width="12" height="6"></rect>
+<rect class="led on" x="572.0" y="332" width="12" height="6"></rect>
+<rect class="body" x="660" y="270" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="667" y="277" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M672 342 v-8 l8 8 z"></path>
+<text class="etch" x="742.0" y="306" text-anchor="middle" style="font-size: 16px; font-weight: 700">SQL</text>
+<text class="etch dim" x="742.0" y="322" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · DAILY</text>
+<rect class="led on" x="720.0" y="332" width="12" height="6"></rect>
+<rect class="led on" x="736.0" y="332" width="12" height="6"></rect>
+<rect class="led on" x="752.0" y="332" width="12" height="6"></rect>
+<rect class="body" x="840" y="270" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="847" y="277" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M852 342 v-8 l8 8 z"></path>
+<text class="etch" x="922.0" y="306" text-anchor="middle" style="font-size: 16px; font-weight: 700">C++</text>
+<text class="etch dim" x="922.0" y="322" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="900.0" y="332" width="12" height="6"></rect>
+<rect class="led on" x="916.0" y="332" width="12" height="6"></rect>
+<rect class="led" x="932.0" y="332" width="12" height="6"></rect>
+<rect class="lid" x="1020" y="270" width="128" height="84" rx="1"></rect>
+<text class="etch" x="1084.0" y="310.0" text-anchor="middle" style="font-size: 11px; font-weight: 700; letter-spacing: .14em">LANGUAGES</text>
+<text class="etch dim" x="1084.0" y="328.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DIMM_A1 · 16 GB</text>
+</g>
+<rect class="body" x="416" y="252" width="24" height="120"></rect>
+<rect class="body" x="408" y="246" width="40" height="8"></rect>
+<rect class="body" x="408" y="370" width="40" height="8"></rect>
+<g class="part" data-key="s1" tabindex="0" aria-label="Frameworks: Django, DRF, Celery">
+<rect class="body" x="440" y="390" width="720" height="104" rx="2"></rect>
+<path class="gold" d="M442 398 H460 M442 403 H460 M442 408 H460 M442 413 H460 M442 418 H460 M442 423 H460 M442 428 H460 M442 433 H460 M442 443 H460 M442 448 H460 M442 453 H460 M442 458 H460 M442 463 H460 M442 468 H460 M442 473 H460 M442 478 H460 M442 483 H460 "></path>
+<rect class="body" x="480" y="400" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="487" y="407" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M492 472 v-8 l8 8 z"></path>
+<text class="etch" x="562.0" y="436" text-anchor="middle" style="font-size: 16px; font-weight: 700">Django</text>
+<text class="etch dim" x="562.0" y="452" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · DAILY</text>
+<rect class="led on" x="540.0" y="462" width="12" height="6"></rect>
+<rect class="led on" x="556.0" y="462" width="12" height="6"></rect>
+<rect class="led on" x="572.0" y="462" width="12" height="6"></rect>
+<rect class="body" x="660" y="400" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="667" y="407" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M672 472 v-8 l8 8 z"></path>
+<text class="etch" x="742.0" y="436" text-anchor="middle" style="font-size: 16px; font-weight: 700">DRF</text>
+<text class="etch dim" x="742.0" y="452" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · DAILY</text>
+<rect class="led on" x="720.0" y="462" width="12" height="6"></rect>
+<rect class="led on" x="736.0" y="462" width="12" height="6"></rect>
+<rect class="led on" x="752.0" y="462" width="12" height="6"></rect>
+<rect class="body" x="840" y="400" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="847" y="407" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M852 472 v-8 l8 8 z"></path>
+<text class="etch" x="922.0" y="436" text-anchor="middle" style="font-size: 16px; font-weight: 700">Celery</text>
+<text class="etch dim" x="922.0" y="452" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="900.0" y="462" width="12" height="6"></rect>
+<rect class="led on" x="916.0" y="462" width="12" height="6"></rect>
+<rect class="led" x="932.0" y="462" width="12" height="6"></rect>
+<rect class="lid" x="1020" y="400" width="128" height="84" rx="1"></rect>
+<text class="etch" x="1084.0" y="440.0" text-anchor="middle" style="font-size: 11px; font-weight: 700; letter-spacing: .14em">FRAMEWORKS</text>
+<text class="etch dim" x="1084.0" y="458.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DIMM_A2 · 16 GB</text>
+</g>
+<rect class="body" x="416" y="382" width="24" height="120"></rect>
+<rect class="body" x="408" y="376" width="40" height="8"></rect>
+<rect class="body" x="408" y="500" width="40" height="8"></rect>
+<g class="part" data-key="s2" tabindex="0" aria-label="Data: PostgreSQL, Redis">
+<rect class="body" x="440" y="520" width="720" height="104" rx="2"></rect>
+<path class="gold" d="M442 528 H460 M442 533 H460 M442 538 H460 M442 543 H460 M442 548 H460 M442 553 H460 M442 558 H460 M442 563 H460 M442 573 H460 M442 578 H460 M442 583 H460 M442 588 H460 M442 593 H460 M442 598 H460 M442 603 H460 M442 608 H460 M442 613 H460 "></path>
+<rect class="body" x="480" y="530" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="487" y="537" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M492 602 v-8 l8 8 z"></path>
+<text class="etch" x="562.0" y="566" text-anchor="middle" style="font-size: 16px; font-weight: 700">PostgreSQL</text>
+<text class="etch dim" x="562.0" y="582" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · DAILY</text>
+<rect class="led on" x="540.0" y="592" width="12" height="6"></rect>
+<rect class="led on" x="556.0" y="592" width="12" height="6"></rect>
+<rect class="led on" x="572.0" y="592" width="12" height="6"></rect>
+<rect class="body" x="660" y="530" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="667" y="537" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M672 602 v-8 l8 8 z"></path>
+<text class="etch" x="742.0" y="566" text-anchor="middle" style="font-size: 16px; font-weight: 700">Redis</text>
+<text class="etch dim" x="742.0" y="582" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="720.0" y="592" width="12" height="6"></rect>
+<rect class="led on" x="736.0" y="592" width="12" height="6"></rect>
+<rect class="led" x="752.0" y="592" width="12" height="6"></rect>
+<rect x="840" y="530" width="164" height="84" fill="none" stroke="#5f6a76" stroke-width="1.3" stroke-dasharray="5 5"></rect>
+<text class="etch dim" x="922.0" y="570" text-anchor="middle" style="font-size: 12px; font-weight: 700; letter-spacing: .14em">FREE</text>
+<text class="etch dim" x="922.0" y="588" text-anchor="middle" style="font-size: 8px; letter-spacing: .1em">NEXT SKILL</text>
+<rect class="lid" x="1020" y="530" width="128" height="84" rx="1"></rect>
+<text class="etch" x="1084.0" y="570.0" text-anchor="middle" style="font-size: 11px; font-weight: 700; letter-spacing: .14em">DATA</text>
+<text class="etch dim" x="1084.0" y="588.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DIMM_B1 · 16 GB</text>
+</g>
+<rect class="body" x="416" y="512" width="24" height="120"></rect>
+<rect class="body" x="408" y="506" width="40" height="8"></rect>
+<rect class="body" x="408" y="630" width="40" height="8"></rect>
+<g class="part" data-key="s3" tabindex="0" aria-label="Infra: [AWS], [Docker], [Nginx]">
+<rect class="body" x="440" y="650" width="720" height="104" rx="2"></rect>
+<path class="gold" d="M442 658 H460 M442 663 H460 M442 668 H460 M442 673 H460 M442 678 H460 M442 683 H460 M442 688 H460 M442 693 H460 M442 703 H460 M442 708 H460 M442 713 H460 M442 718 H460 M442 723 H460 M442 728 H460 M442 733 H460 M442 738 H460 M442 743 H460 "></path>
+<rect class="body" x="480" y="660" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="487" y="667" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M492 732 v-8 l8 8 z"></path>
+<text class="etch" x="562.0" y="696" text-anchor="middle" style="font-size: 16px; font-weight: 700">[AWS]</text>
+<text class="etch dim" x="562.0" y="712" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="540.0" y="722" width="12" height="6"></rect>
+<rect class="led on" x="556.0" y="722" width="12" height="6"></rect>
+<rect class="led" x="572.0" y="722" width="12" height="6"></rect>
+<rect class="body" x="660" y="660" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="667" y="667" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M672 732 v-8 l8 8 z"></path>
+<text class="etch" x="742.0" y="696" text-anchor="middle" style="font-size: 16px; font-weight: 700">[Docker]</text>
+<text class="etch dim" x="742.0" y="712" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="720.0" y="722" width="12" height="6"></rect>
+<rect class="led on" x="736.0" y="722" width="12" height="6"></rect>
+<rect class="led" x="752.0" y="722" width="12" height="6"></rect>
+<rect class="body" x="840" y="660" width="164" height="84" rx="1"></rect>
+<rect class="lid" x="847" y="667" width="150" height="70" rx="1"></rect>
+<path class="ln" d="M852 732 v-8 l8 8 z"></path>
+<text class="etch" x="922.0" y="696" text-anchor="middle" style="font-size: 16px; font-weight: 700">[Nginx]</text>
+<text class="etch dim" x="922.0" y="712" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DDR5 · COMFORT</text>
+<rect class="led on" x="900.0" y="722" width="12" height="6"></rect>
+<rect class="led on" x="916.0" y="722" width="12" height="6"></rect>
+<rect class="led" x="932.0" y="722" width="12" height="6"></rect>
+<rect class="lid" x="1020" y="660" width="128" height="84" rx="1"></rect>
+<text class="etch" x="1084.0" y="700.0" text-anchor="middle" style="font-size: 11px; font-weight: 700; letter-spacing: .14em">INFRA</text>
+<text class="etch dim" x="1084.0" y="718.0" text-anchor="middle" style="font-size: 8px; letter-spacing: .14em">DIMM_B2 · 16 GB</text>
+</g>
+<rect class="body" x="416" y="642" width="24" height="120"></rect>
+<rect class="body" x="408" y="636" width="40" height="8"></rect>
+<rect class="body" x="408" y="760" width="40" height="8"></rect></g></g>
+<g class="partw" data-part="cpu" tabindex="0" role="button" aria-label="About me"><g transform="translate(-800 -500) scale(1.0)"><path class="pin" d="M668.0 350 V336 M668.0 650 V664 M650 368.0 H636 M950 368.0 H964 M685.6 350 V336 M685.6 650 V664 M650 385.6 H636 M950 385.6 H964 M703.2 350 V336 M703.2 650 V664 M650 403.2 H636 M950 403.2 H964 M720.8 350 V336 M720.8 650 V664 M650 420.8 H636 M950 420.8 H964 M738.4 350 V336 M738.4 650 V664 M650 438.4 H636 M950 438.4 H964 M756.0 350 V336 M756.0 650 V664 M650 456.0 H636 M950 456.0 H964 M773.6 350 V336 M773.6 650 V664 M650 473.6 H636 M950 473.6 H964 M791.2 350 V336 M791.2 650 V664 M650 491.2 H636 M950 491.2 H964 M808.8 350 V336 M808.8 650 V664 M650 508.8 H636 M950 508.8 H964 M826.4 350 V336 M826.4 650 V664 M650 526.4 H636 M950 526.4 H964 M844.0 350 V336 M844.0 650 V664 M650 544.0 H636 M950 544.0 H964 M861.6 350 V336 M861.6 650 V664 M650 561.6 H636 M950 561.6 H964 M879.2 350 V336 M879.2 650 V664 M650 579.2 H636 M950 579.2 H964 M896.8 350 V336 M896.8 650 V664 M650 596.8 H636 M950 596.8 H964 M914.4 350 V336 M914.4 650 V664 M650 614.4 H636 M950 614.4 H964 M932.0 350 V336 M932.0 650 V664 M650 632.0 H636 M950 632.0 H964 "></path>
+<rect class="pkg" x="650" y="350" width="300" height="300" rx="3"></rect>
+<rect class="lid" x="690" y="390" width="220" height="220" rx="2"></rect>
+<path d="M702 598 L702 580 L720 598 Z" fill="none" stroke="#c3ccd5" stroke-width="1.2"></path>
+<text class="etch" x="800" y="486" text-anchor="middle" style="font-size: 64px; font-weight: 800; letter-spacing: .04em">LEE</text>
+<text class="etch" x="800" y="514" text-anchor="middle" style="font-size: 11px; font-weight: 600; letter-spacing: .2em">SENIOR BACKEND ENGINEER</text>
+<line x1="730" y1="530" x2="870" y2="530" stroke="#4a535d" stroke-width="1"></line>
+<text class="etch dim" x="800" y="550" text-anchor="middle" style="font-size: 9px; letter-spacing: .16em">PYTHON · DJANGO · POSTGRESQL</text>
+<text class="etch dim" x="800" y="590" text-anchor="middle" style="font-size: 8px; letter-spacing: .16em">LEE-5Y · BENGALURU · e3</text></g></g>
+<g class="lbl" data-part="cpu"><text class="n" x="0" y="268" text-anchor="middle">About me</text><text class="s" x="0" y="292" text-anchor="middle">U1 · CPU · THE HUB</text></g><g class="lbl" data-part="ram"><text class="n" x="480" y="290" text-anchor="start">Skills</text><text class="s" x="480" y="314" text-anchor="start">U2 · RAM · 4× DDR5</text></g><g class="lbl" data-part="ssd"><text class="n" x="-1080" y="150" text-anchor="start">Experience</text><text class="s" x="-1080" y="174" text-anchor="start">U3 · SSD · M.2 NVMe</text></g><g class="lbl" data-part="gpu"><text class="n" x="-430" y="-470" text-anchor="end">Projects</text><text class="s" x="-430" y="-446" text-anchor="end">U4 · GPU · PCIe x16</text></g><g class="lbl" data-part="nic"><text class="n" x="580" y="-722" text-anchor="start">Contact</text><text class="s" x="580" y="-698" text-anchor="start">U5 · NIC · PCIe x4</text></g>
+<g id="bits"></g>
+</svg>
+
+<header class="top"><a class="brand" href="#board" data-go="0" style="text-decoration: none; pointer-events: auto">lee.sh</a><a class="btn" href="#" target="_blank" rel="noopener">Résumé ↗</a></header>
+<nav aria-label="Sections"><ol class="index" id="index"></ol></nav>
+<div class="hint">Scroll<i></i></div>
+<div class="cap" id="cap"></div>
+<div class="closing"><h2>All systems online. <span>Let's talk.</span></h2><a class="btn primary" href="#nic" data-go="5">Email me</a><a class="btn" href="#" target="_blank" rel="noopener">Résumé ↗</a></div>
+<div class="track" aria-hidden="true"><section></section><section></section><section></section><section></section><section></section><section></section><section></section></div>
+
+<script>
+(function () {
+  var FRAMES = {"cpu": [-800, -500, 1600.0, 1000.0], "ram": [126.4, -430.95, 1360.0, 850.0], "ssd": [-1266, -325, 1040.0, 650.0], "gpu": [-755, -1039, 1440.0, 900.0], "nic": [357.8, -848, 1120.0, 700.0], "board": [-1260, -960, 2620, 1360], "all": [-1260, -960, 2620, 1560]};
+  var STEPS = [['board', 'Board', 'The whole board. Hover a part, or scroll to power on.'],
+               ['cpu', 'About', 'CPU · the notes from lee-cpu.html float here'],
+               ['ram', 'Skills', 'RAM · the notes from lee-ram.html float here'],
+               ['ssd', 'Experience', 'SSD · the notes from lee-ssd.html float here'],
+               ['gpu', 'Projects', 'GPU · the notes from lee-gpu.html float here'],
+               ['nic', 'Contact', 'NIC · the notes from lee-nic.html float here'],
+               ['all', 'Online', 'Closing shot · every part lit']];
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var wide = matchMedia('(min-width: 1100px) and (min-aspect-ratio: 5/4)');
+  var svg = document.getElementById('world'), root = document.documentElement, NS = 'http://www.w3.org/2000/svg';
+  var parts = [].slice.call(svg.querySelectorAll('.partw')), others = [].slice.call(svg.querySelectorAll('.stubs, .title, .slot'));
+  function q(sel) { return [].slice.call(document.querySelectorAll(sel)); }
+
+  // camera: frames are each page's 1600x1000 box in board units; fit them to the viewport like "slice"
+  function fit(f, slice) {
+    var A = innerWidth / innerHeight, w = f[2], h = f[3], cx = f[0] + w / 2, cy = f[1] + h / 2;
+    if ((w / h > A) === !slice) h = w / A; else w = h * A;
+    return [cx, cy, w];
+  }
+  function frameFor(id) { return fit(FRAMES[id], id !== 'board' && id !== 'all'); }
+  var ease = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  // flyTo: centre moves, width interpolates in log space with a zoom-out bump on long hops
+  function between(a, b, t) {
+    var e = ease(t), dist = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    var bump = Math.min(.9, dist / (a[2] + b[2]) * 1.1) * Math.sin(Math.PI * e);
+    var w = Math.exp(Math.log(a[2]) + (Math.log(b[2]) - Math.log(a[2])) * e) * (1 + bump);
+    return [a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e, w];
+  }
+  var HOLD = .22;   // each stop holds still for the middle 44% of its screen of scroll
+  function cameraAt(pos) {
+    var i = Math.max(0, Math.min(STEPS.length - 1, Math.floor(pos))), f = pos - i;
+    if (i >= STEPS.length - 1) return frameFor(STEPS[STEPS.length - 1][0]);
+    var a = frameFor(STEPS[i][0]), b = frameFor(STEPS[i + 1][0]);
+    if (f <= HOLD) return a;
+    if (f >= 1 - HOLD) return b;
+    return between(a, b, (f - HOLD) / (1 - 2 * HOLD));
+  }
+  function setCam(c) {
+    var h = c[2] * innerHeight / innerWidth;
+    svg.setAttribute('viewBox', (c[0] - c[2] / 2).toFixed(1) + ' ' + (c[1] - h / 2).toFixed(1) + ' ' + c[2].toFixed(1) + ' ' + h.toFixed(1));
+  }
+
+  // steps, focus and lit state
+  var index = document.getElementById('index');
+  STEPS.slice(1, 6).forEach(function (s, k) {
+    var li = document.createElement('li'), a = document.createElement('a');
+    a.href = '#' + s[0]; a.dataset.go = k + 1; a.innerHTML = '<b>U' + (k + 1) + '</b>' + s[1];
+    li.appendChild(a); index.appendChild(li);
+  });
+  var step = -1, hover = null;
+  function refresh() {
+    var id = STEPS[Math.max(0, step)][0], focus = ['cpu', 'ram', 'ssd', 'gpu', 'nic'].indexOf(id) >= 0 ? id : null;
+    root.classList.toggle('zoomed', !!focus);
+    parts.forEach(function (p) {
+      var k = p.dataset.part;
+      p.classList.toggle('far', !!focus && k !== focus);
+      p.classList.toggle('lit', id === 'all' || (!focus && hover === k));
+    });
+    q('.bus').forEach(function (b) {
+      var k = b.dataset.part;
+      b.classList.toggle('far', !!focus && focus !== 'cpu' && k !== focus);
+      b.classList.toggle('lit', id === 'all' || (!focus && hover === k) || focus === k);
+    });
+    others.forEach(function (o) { o.classList.toggle('far', !!focus); });
+    q('.lbl').forEach(function (l) { l.classList.toggle('lit', hover === l.dataset.part); });
+  }
+  function setStep(i) {
+    if (i === step) return;
+    step = i; root.dataset.step = STEPS[i][0];
+    index.querySelectorAll('a').forEach(function (a, j) { a.setAttribute('aria-current', j + 1 === i ? 'true' : 'false'); });
+    document.getElementById('cap').innerHTML = '<b>' + String(i).padStart(2, '0') + ' · ' + STEPS[i][1] + '</b> · ' + STEPS[i][2];
+    refresh();
+  }
+  function goStep(i) { scrollTo({ top: i * innerHeight, behavior: reduce ? 'auto' : 'smooth' }); }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-go]'); if (a) { e.preventDefault(); goStep(+a.dataset.go); return; }
+    var p = e.target.closest('[data-part]');
+    if (p && wide.matches && step === 0) goStep(STEPS.findIndex(function (s) { return s[0] === p.dataset.part; }));
+  });
+  q('[data-part]').forEach(function (el) {
+    var k = el.dataset.part;
+    el.addEventListener('pointerenter', function () { hover = k; refresh(); });
+    el.addEventListener('pointerleave', function () { if (hover === k) { hover = null; refresh(); } });
+  });
+  parts.forEach(function (p) {
+    p.addEventListener('focus', function () { hover = p.dataset.part; refresh(); });
+    p.addEventListener('blur', function () { hover = null; refresh(); });
+    p.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goStep(STEPS.findIndex(function (s) { return s[0] === p.dataset.part; })); } });
+  });
+
+  // bits riding each bus: together they spell LEE in ASCII
+  var BITS = '010011000100010101000101', runners = [];
+  q('.bus').forEach(function (bus, bi) {
+    var path = bus.querySelector('.carrier'), len = path.getTotalLength();
+    for (var k = 0; k < 4; k++) {
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('class', 'bit'); t.setAttribute('text-anchor', 'middle'); t.textContent = BITS[(bi * 6 + k) % BITS.length];
+      document.getElementById('bits').appendChild(t);
+      runners.push({ el: t, path: path, len: len, s: (k / 4) * len, dir: k % 2 ? -1 : 1, bus: bus });
+    }
+  });
+
+  var pos = null, last = performance.now(), forced = new URLSearchParams(location.search).get('pos');   // ?pos=2.5 pins the camera, for review screenshots
+  function frame(now) {
+    var dt = Math.min((now - last) / 1000, .05); last = now;
+    if (wide.matches) {
+      var target = forced !== null ? +forced : Math.max(0, Math.min(STEPS.length - 1, scrollY / innerHeight));
+      if (forced !== null) pos = target;
+      if (pos === null || reduce) pos = reduce ? Math.round(target) : target; else pos += (target - pos) * (1 - Math.exp(-dt * 8));
+      setCam(cameraAt(pos));
+      setStep(Math.max(0, Math.min(STEPS.length - 1, Math.round(target))));
+    } else { setCam(frameFor('board')); if (step !== 0) setStep(0); }
+    runners.forEach(function (r) {
+      var lit = r.bus.classList.contains('lit');
+      if (!reduce) r.s = (((r.s + dt * (lit ? 90 : 30) * r.dir) % r.len) + r.len) % r.len;
+      var p = r.path.getPointAtLength(r.s);
+      r.el.setAttribute('x', p.x.toFixed(1)); r.el.setAttribute('y', (p.y - 7).toFixed(1));
+      var edge = Math.min(1, Math.min(r.s, r.len - r.s) / 30);
+      r.el.style.opacity = ((r.bus.classList.contains('far') ? 0 : lit ? 1 : .35) * edge).toFixed(3);
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

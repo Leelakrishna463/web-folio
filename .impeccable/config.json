@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "design/lee-ram.html"
+        ],
+        "createdAt": "2026-10-23T17:45:06.336Z",
+        "reason": "user asked for a neon look with a lit-up CPU (2026-10-23 session); amber glow is the agreed direction on the CPU and RAM pages"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "design/lee-ram.html"
+        ],
+        "createdAt": "2026-10-23T17:48:50.711Z",
+        "reason": "false positive: detector resolves ds.css's light --ground #c9d3db, but this page overrides the ground to #060708 in its own :root; real muted-text contrast was fixed to 4.8:1 by hand"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "design/lee-*.html"
+        ],
+        "createdAt": "2026-10-26T17:39:08.177Z",
+        "reason": "user asked for a neon look with a lit-up CPU (2026-10-23 session); the amber glow is the agreed direction for every dark board page"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "design/ds/dark.css"
+        ],
+        "createdAt": "2026-10-26T17:39:08.429Z",
+        "reason": "user asked for a neon look with a lit-up CPU (2026-10-23 session); the amber glow is the agreed direction for every dark board page"
+      }
+    ]
+  }
+}

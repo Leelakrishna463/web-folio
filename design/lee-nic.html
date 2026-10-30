@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact Lee · LEE-5Y ordering information</title>
+<meta name="description" content="Contact Lee by email. Open to senior backend roles.">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ds/ds.css">
+<link rel="stylesheet" href="ds/dark.css">
+<style>
+  :root { --glow-at: 58% 46%; }
+  .mail { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 24px 0 0; }
+  .mail a { font: 800 clamp(22px, 2.2vw, 28px)/1.2 var(--font); letter-spacing: -.01em; text-decoration: none; overflow-wrap: anywhere; color: var(--hot); }
+  .mail a:hover { color: var(--red); }
+  .btn.small { min-height: 36px; padding: 0 12px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<header class="run">
+  <a class="part" href="lee-board.html">LEE-5Y<small>Senior Backend Engineer</small></a>
+  <nav aria-label="Sections"><ul class="toc">
+    <li><a href="lee-board.html"><b>1</b>Overview</a></li>
+    <li><a href="lee-cpu.html"><b>2</b>About</a></li>
+    <li><a href="lee-ram.html"><b>3</b>Skills</a></li>
+    <li><a href="lee-ssd.html"><b>4</b>Experience</a></li>
+    <li><a href="lee-gpu.html"><b>5</b>Projects</a></li>
+    <li><a href="lee-nic.html" aria-current="page"><b>6</b>Contact</a></li>
+  </ul></nav>
+  <a class="btn solid" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+</header>
+
+<main class="stage">
+  <section class="intro" aria-labelledby="what">
+    <h1 id="what">Let's talk</h1>
+    <p class="lede">One channel, one address, always listening.</p>
+    <div class="mail">
+      <a id="addr" href="mailto:[you@example.com]">[you@example.com]</a>
+      <button class="btn small" id="copy" type="button" data-target="addr">Copy</button>
+    </div>
+    <ul class="quick">
+      <li>Open to senior backend roles</li>
+      <li>Bengaluru, India · [on-site or remote]</li>
+      <li>Replies usually within [24 hours]</li>
+    </ul>
+    <div class="actions">
+      <a class="btn solid" href="mailto:[you@example.com]">Email Lee</a>
+      <a class="btn" href="#" target="_blank" rel="noopener">Résumé PDF <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v8M3 5.5 7 9.5l4-4M1 13h12"/></svg></a>
+    </div>
+    <p class="hint" id="hint">Hover, tab or tap a part of the card to read it.</p>
+  </section>
+  <figure id="fig" data-label="A network card wired to Lee's CPU: four Ethernet ports, PHY chips, a controller chip lettered with Lee's email, memory buffers and a PCIe connector.">
+    <div class="canvas"></div>
+    <p class="sr" aria-live="polite" id="live"></p>
+    <ul class="facts">
+      <li>Controller: [you@example.com], one address, always listening</li>
+      <li>Ports: link up, open to senior backend roles</li>
+      <li>Buffers: nothing dropped, every message gets a reply, usually within [24 hours]</li>
+      <li>PCIe: ready to slot in, <a href="#">résumé PDF</a></li>
+    </ul>
+  </figure>
+</main>
+
+<script src="ds/ds.js"></script>
+<script src="ds/live.js"></script>
+<script>
+(function () {
+  var EMAIL = '[you@example.com]', RESUME = '#';
+  var live = document.getElementById('live'), hint = document.getElementById('hint'), touch = matchMedia('(hover: none)');
+  var cur = null;   // { api, tips layer, parts, mode, viewBox, fit } for the current build
+  // what each part of the card says, in tour order: [title, tag, rows]
+  var SAYS = {
+    ports: ['PORTS', 'LINK UP', [{ text: 'Open to senior backend roles.' }, { text: 'Bengaluru, India · [on-site or remote].' }]],
+    ctrl: ['EMAIL', 'CONTROLLER', [{ text: EMAIL }, { text: 'One address, always listening.' }, { act: 'Click to copy' }]],
+    buf: ['BUFFERS', 'NOTHING DROPPED', [{ text: 'Every message gets a reply, usually within [24 hours].' }]],
+    pcie: ['PCIe', 'READY TO SLOT IN', [{ text: 'Résumé as a PDF.' }, { act: 'Click to download' }]]
+  };
+  var ORDER = ['ports', 'ctrl', 'buf', 'pcie'];
+
+  function copyEmail() {
+    var done = function () { hint.textContent = 'Copied ' + EMAIL + '. Paste it into any mail client.'; live.textContent = hint.textContent; };
+    if (navigator.clipboard) navigator.clipboard.writeText(EMAIL).then(done, function () { location.href = 'mailto:' + EMAIL; });
+    else location.href = 'mailto:' + EMAIL;
+  }
+  var probes = {
+    ports: { label: 'Ethernet ports: link up, open to senior backend roles.', pad: 2 },
+    ctrl: { label: 'Controller: email ' + EMAIL + '. Activate to copy.', run: copyEmail, pad: 2 },
+    buf: { label: 'Buffers: nothing dropped. Every message gets a reply, usually within 24 hours.', pad: 2 },
+    pcie: { label: 'PCIe connector: ready to slot in. Downloads the résumé.', href: RESUME, pad: 2 }
+  };
+  // a probe group with its lead: from (x, y), E units in direction dir; the box then opens that way from the lead's tip
+  function part(api, parent, key, x, y, dir, E) {
+    var g = api.probe(parent, key, probes[key]);
+    var ox = dir === 'l' ? -1 : dir === 'r' ? 1 : 0, oy = dir === 'u' ? -1 : dir === 'd' ? 1 : 0;
+    api.el('path', { d: 'M' + x + ' ' + y + 'l' + ox * E + ' ' + oy * E, class: 'ext', 'stroke-dasharray': E, 'stroke-dashoffset': E }, g);
+    cur.parts[key] = { end: [x + ox * E, y + oy * E], dir: dir };
+    return g;
+  }
+
+  function jack(api, g, x, y, w, h, k) {
+    api.el('rect', { x: x, y: y, width: w, height: h, class: 'body' }, g);
+    // the latch opening and the eight contacts, then a steady link LED and a blinking activity LED
+    var lx = x + w * 0.2, lw = w * 0.6, t = '';
+    for (var i = 0; i < 8; i++) t += 'M' + (lx + 4 + i * (lw - 8) / 7).toFixed(1) + ' ' + (y + h * 0.3) + 'v' + (h * 0.22).toFixed(1) + ' ';
+    api.el('rect', { x: lx, y: y + h * 0.22, width: lw, height: h * 0.56, class: 'paper' }, g);
+    api.el('path', { d: t, class: 'thin' }, g);
+    api.el('rect', { x: x + 4, y: y + 4, width: 7, height: 5, class: 'led ok' }, g);
+    api.el('rect', { x: x + w - 11, y: y + 4, width: 7, height: 5, class: 'led blink', style: 'animation-delay:-' + (k * 0.9) + 's' }, g);
+  }
+
+  function show(key) {
+    var P = key && cur.parts[key];
+    if (!P) { while (cur.tips.firstChild) cur.tips.removeChild(cur.tips.firstChild); live.textContent = ''; return; }
+    var s = SAYS[key], narrow = cur.mode === 'narrow';
+    var rows = s[2].map(function (r) { return r.act && touch.matches ? { act: r.act.replace('Click', 'Tap again') } : r; });
+    LIVE.card(cur.api, cur.tips, { end: P.end, dir: P.dir, W: narrow ? 210 : 290, narrow: narrow, vb: cur.vb, title: s[0], tag: s[1], rows: rows });
+    live.textContent = s[0] + ', ' + s[1] + ': ' + s[2].filter(function (r) { return r.text; }).map(function (r) { return r.text; }).join(' ');
+  }
+
+  var fig = DS.figure({
+    el: '#fig', wide: [1000, 740], narrow: [360, 970], narrowAt: 620,
+    onShow: function (o, key) { if (cur) show(o ? key : null); },
+    build: function (api, mode) {
+      var svg = api.svg, back = api.g(svg), base = api.g(svg), nets = api.g(svg), parts = api.g(svg), tips = api.g(svg);
+      cur = { api: api, tips: tips, parts: {}, mode: mode, vb: mode === 'wide' ? [1000, 740] : [360, 970], fit: null };
+      if (mode === 'wide') {
+        // the rest of the board: RAM above the card, the CPU at the right edge (sliding to hug it), GPU and SSD below
+        var B = LIVE.board(api, back), east = api.g(back);
+        B.ram(140, 30, 400); B.gpu(40, 600, 250, 200); B.ssd(330, 670, 270);
+        var cpu = B.cpu(850, 60, 640, east);
+        var X0 = 60, X1 = 800, Y0 = 140, Y1 = 500;
+        api.el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, class: 'paper pcb' }, base);
+        api.el('circle', { cx: X1 - 18, cy: Y0 + 18, r: 6, class: 'paper' }, base);
+        api.text(base, X0 + 200, Y0 + 22, 'LEE-NIC · 4 × 2.5 GbE', { size: 10.5, cls: 'num' });
+        // ports: bracket, four RJ45 jacks and their PHYs
+        var pg = part(api, parts, 'ports', X0 + 56, Y0 + 13, 'u', 24);
+        api.el('rect', { x: X0 - 26, y: Y0 - 12, width: 26, height: Y1 - Y0 + 24, class: 'paper' }, pg);
+        api.text(pg, X0 - 13, (Y0 + Y1) / 2, 'LINK UP · OPEN TO SENIOR BACKEND ROLES', { size: 11, cls: 'lt', anchor: 'middle', mid: true, rot: -90 });
+        var phyY = [];
+        for (var k = 0; k < 4; k++) {
+          var jy = Y0 + 18 + k * 84;
+          jack(api, pg, X0 + 4, jy, 104, 66, k);
+          api.chip(pg, { x: X0 + 150, y: jy + 13, w: 74, h: 40, pins: 'tb', pitch: 8, len: 4 });
+          api.text(pg, X0 + 187, jy + 33, 'PHY ' + (k + 1), { size: 11, cls: 'lab in', anchor: 'middle', mid: true });
+          api.net(nets, [[X0 + 112, jy + 33], [X0 + 146, jy + 33]], 'ports', { square: true });
+          phyY.push(jy + 33);
+        }
+        // the controller, lettered with the address and lit from inside
+        var C = { x: 360, y: 180, s: 220 };
+        phyY.forEach(function (py, k) {
+          var ey = C.y + 40 + k * 46, lane = X0 + 246 + (k < 2 ? k : 3 - k) * 10;
+          api.net(nets, [[X0 + 228, py], [lane, py], [lane, ey], [C.x - 6, ey]], 'ports', { r: 6 });
+        });
+        var cg = part(api, parts, 'ctrl', C.x + C.s / 2, C.y - 7, 'u', 24);
+        cg.classList.add('l3');
+        api.chip(cg, { x: C.x, y: C.y, w: C.s, h: C.s, pins: 'tblr', pitch: 10, len: 6 });
+        api.el('rect', { x: C.x + 22, y: C.y + 22, width: C.s - 44, height: C.s - 44, class: 'thin in' }, cg);
+        api.lines(cg, C.x + C.s / 2, C.y + C.s / 2 - 36, [['EMAIL', 13, 'lab in', 2], [EMAIL, 20, 'lt', 4], ['ONE ADDRESS', 11, 'lab in'], ['ALWAYS LISTENING', 11, 'lab in', 8], ['LEE-NIC CONTROLLER', 9.5, 'num']], { lh: 1.4 });
+        // buffers
+        var BX = 620, bw = 80, bh = 66, bg = part(api, parts, 'buf', BX + bw + 6, 185, 'u', 24);
+        var words = [['EVERY MESSAGE', 'GETS A REPLY'], ['NOTHING', 'DROPPED'], ['USUALLY', 'WITHIN'], ['[24 HOURS]', 'BUFFER']];
+        for (var b = 0; b < 4; b++) {
+          var bx = BX + (b % 2) * (bw + 12), by = 192 + Math.floor(b / 2) * (bh + 34);
+          api.chip(bg, { x: bx, y: by, w: bw, h: bh, pins: 'tb', pitch: 8, len: 4 });
+          api.lines(bg, bx + bw / 2, by + bh / 2 - 8, [[words[b][0], 10, 'lt'], [words[b][1], 10, b === 3 ? 'num' : 'lt']], { lh: 1.45 });
+        }
+        api.net(nets, [[C.x + C.s + 7, 225], [BX - 5, 225]], 'buf', { square: true });
+        api.net(nets, [[C.x + C.s + 7, 325], [BX - 5, 325]], 'buf', { square: true });
+        // PCIe x4 fingers
+        var fg = part(api, parts, 'pcie', 500, Y1 + 33, 'd', 24);
+        api.el('rect', { x: 412, y: Y1 - 2, width: 176, height: 32, class: 'hit' }, fg);
+        LIVE.fingers(api, fg, { x: 416, y: Y1, len: 168, d: 24, side: 'b', key: 39, pitch: 8, snug: true });
+        // seated in its PCIe x4 slot on the board
+        api.el('rect', { x: 408, y: Y1 + 15, width: 184, height: 17, class: 'body' }, fg);   // its slot, over the finger tips
+        api.text(fg, 600, Y1 - 24, 'READY TO SLOT IN', { size: 12, cls: 'lt' });
+        api.text(fg, 600, Y1 - 8, 'PCIe x4 · RÉSUMÉ', { size: 10.5, cls: 'num' });
+        api.net(nets, [[C.x + C.s / 2, C.y + C.s + 7], [C.x + C.s / 2, Y1 - 16]], 'pcie ctrl', { square: true });
+        // the fingers' lanes drop out of the slot and run on into the CPU, the rightmost turning first so none cross
+        var lanes = [];
+        for (var q = 0; q < 8; q++) {
+          var lx = 580 - q * 18, turn = Y1 + 44 + q * 12;
+          if (lx > 446 && lx < 464) lx -= 12;
+          lanes.push([lx, turn, LIVE.trace(api, nets, (q * 7) % 10, q % 2 === 1), api.el('path', { class: 'pin' }, nets)]);
+        }
+        cur.fit = function () {
+          var e = LIVE.edge(svg); if (!e) return;
+          var dx = Math.max(0, e.right - 1070);
+          east.setAttribute('transform', 'translate(' + dx.toFixed(1) + ' 0)');
+          // each lane leaves the slot's underside and ends on its own CPU pin, drawn sharp (the CPU sits blurred behind)
+          lanes.forEach(function (l) {
+            l[2].set([[l[0], Y1 + 32], [l[0], l[1]], [l[0] + 10, l[1] + 10], [840 + dx, l[1] + 10]]);
+            l[3].setAttribute('d', 'M' + (840 + dx) + ' ' + (l[1] + 10) + 'h12');
+          });
+        };
+        cur.fit();
+      } else {
+        // narrow: the card stands upright, fingers down the right edge with their lanes running off the screen, ports at the bottom
+        var nx0 = 24, nx1 = 330, ny0 = 40, ny1 = 712;
+        api.el('rect', { x: nx0, y: ny0, width: nx1 - nx0, height: ny1 - ny0, class: 'paper pcb' }, base);
+        var fg2 = part(api, parts, 'pcie', nx1 - 16, ny0 + 100, 'l', 16);
+        api.el('rect', { x: nx1 - 2, y: ny0 + 26, width: 20, height: 148, class: 'hit' }, fg2);
+        LIVE.fingers(api, fg2, { x: nx1, y: ny0 + 26, len: 148, d: 16, side: 'r', key: 69, pitch: 7, snug: true });
+        api.el('rect', { x: nx1 + 10, y: ny0 + 18, width: 14, height: 164, class: 'body' }, fg2);   // its slot, over the finger tips
+        for (var q2 = 0; q2 < 6; q2++) api.el('path', { d: 'M' + (nx1 + 24) + ' ' + (ny0 + 40 + q2 * 24) + 'h3000', class: 'trace' }, nets);
+        var cx = 50, cy = 72, cw = 230, chh = 190;
+        var cg2 = part(api, parts, 'ctrl', cx + cw / 2, cy + chh + 7, 'd', 16);
+        cg2.classList.add('l3');
+        api.chip(cg2, { x: cx, y: cy, w: cw, h: chh, pins: 'tblr', pitch: 10, len: 5 });
+        api.lines(cg2, cx + cw / 2, cy + chh / 2 - 34, [['EMAIL', 12, 'lab in', 2], [EMAIL, 19, 'lt', 4], ['ONE ADDRESS', 10.5, 'lab in'], ['ALWAYS LISTENING', 10.5, 'lab in', 6], ['LEE-NIC CONTROLLER', 9, 'num']], { lh: 1.4 });
+        var bg2 = part(api, parts, 'buf', 172, 293, 'u', 16);
+        var w2 = [['EVERY MESSAGE', 'GETS A REPLY'], ['NOTHING', 'DROPPED'], ['USUALLY', 'WITHIN'], ['[24 HOURS]', 'BUFFER']];
+        for (var b2 = 0; b2 < 4; b2++) {
+          var bx2 = 50 + (b2 % 2) * 124, by2 = 300 + Math.floor(b2 / 2) * 84;
+          api.chip(bg2, { x: bx2, y: by2, w: 116, h: 58, pins: 'tb', pitch: 8, len: 4 });
+          api.lines(bg2, bx2 + 58, by2 + 21, [[w2[b2][0], 10.5, 'lt'], [w2[b2][1], 10.5, b2 === 3 ? 'num' : 'lt']], { lh: 1.45 });
+        }
+        api.net(nets, [[120, cy + chh + 5], [120, 296]], 'buf', { square: true });
+        api.net(nets, [[234, cy + chh + 5], [234, 296]], 'buf', { square: true });
+        var pg2 = part(api, parts, 'ports', 172, 491, 'u', 16);
+        for (var k2 = 0; k2 < 4; k2++) {
+          var px = 38 + k2 * 70;
+          api.chip(pg2, { x: px + 6, y: 512, w: 52, h: 36, pins: 'lr', pitch: 8, len: 3 });
+          api.text(pg2, px + 32, 530, 'PHY ' + (k2 + 1), { size: 10, cls: 'lab in', anchor: 'middle', mid: true });
+          jack(api, pg2, px, 582, 64, 104, k2);
+          api.net(nets, [[px + 32, 552], [px + 32, 578]], 'ports', { square: true });
+          // up the left gutter, outermost lane to the highest pin, so nothing crosses
+          var hy = 498 - k2 * 5, lane2 = 41 - k2 * 5, ey2 = cy + 40 + (3 - k2) * 30;
+          api.net(nets, [[px + 32, 508], [px + 32, hy], [lane2, hy], [lane2, ey2], [cx - 5, ey2]], 'ports', { r: 3 });
+        }
+        api.el('rect', { x: nx0 - 10, y: ny1, width: nx1 - nx0 + 20, height: 24, class: 'paper' }, pg2);
+        api.text(pg2, (nx0 + nx1) / 2, ny1 + 12, 'LINK UP · OPEN TO SENIOR BACKEND ROLES', { size: 10.5, cls: 'lt', anchor: 'middle', mid: true });
+      }
+    }
+  });
+  LIVE.watch(document.querySelector('#fig .canvas'), function () { if (cur && cur.fit) cur.fit(); });
+  LIVE.tour(fig, document.getElementById('fig'), function () { return cur ? ORDER.filter(function (k) { return cur.parts[k]; }) : []; });
+  DS.copy(document.getElementById('copy'), EMAIL);
+})();
+</script>
+</body>
+</html>
