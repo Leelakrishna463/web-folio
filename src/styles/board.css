@@ -1,0 +1,97 @@
+/* the drawings: every line and letter in one amber; parts glow when probed, nets light, packets run.
+   Ported from design/ds/ds.css + dark.css. */
+
+/* ---- figure: a wide build, and a narrow build for phones ---- */
+.fig { margin: 0; min-width: 0; }
+.fig .canvas { position: relative; flex: 1; min-height: 0; }
+.fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+.fig svg.narrow { display: none; }
+@media (min-width: 900px) { .fig svg.wide { height: 100%; } }
+@media (max-width: 640px) {
+  .fig svg.wide:has(+ svg.narrow) { display: none; }
+  .fig svg.narrow { display: block; }
+}
+
+/* ---- strokes and fills ---- */
+svg text { font-family: var(--font); fill: var(--ink); }
+svg .ln { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: miter; }
+svg .thin { fill: none; stroke: var(--ink); stroke-width: 1; }
+svg .pin { fill: none; stroke: var(--ink); stroke-width: 1.6; filter: drop-shadow(0 0 2px var(--neon)); }
+svg .body { fill: var(--shade); stroke: var(--ink); stroke-width: 1.6; }
+svg .paper { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+svg .ink { fill: var(--ink); }
+svg .dash { fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .gold { fill: none; stroke: var(--ink); stroke-width: 1; }
+svg .pkg, svg .pcb { filter: drop-shadow(0 0 3px color-mix(in oklab, var(--neon) 45%, transparent)); }
+svg .fill { fill: transparent; }
+svg .via { fill: var(--ground); stroke: var(--ink-2); stroke-width: 1.4; }
+
+/* ---- lettering ---- */
+svg .lt { font-weight: 700; font-stretch: 82%; letter-spacing: .02em; }
+svg .lab { font-weight: 600; font-stretch: 75%; letter-spacing: .03em; }
+svg .mk { font-weight: 500; font-stretch: 90%; }
+svg .num { font-weight: 500; font-stretch: 75%; fill: var(--ink-2); }
+svg .tag { fill: var(--ink); }
+svg .tag .des { fill: var(--ink-2); font-weight: 600; }
+
+/* ---- edge connectors ---- */
+svg .tab { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: miter; }
+svg .tabfill { fill: var(--paper); }
+svg .finger { fill: var(--ink); }
+svg .keyslot { fill: var(--ground); stroke: var(--ink); stroke-width: 1.6; }   /* the key notch, cut clean through the board */
+
+/* ---- LEDs ---- */
+svg .led { fill: var(--ink); }
+svg .led.ok { fill: var(--ok); }
+svg .led.blink { animation: led 3.2s steps(1, end) infinite; }
+@keyframes led { 0%, 62% { opacity: 1; } 63%, 70% { opacity: .15; } 71%, 80% { opacity: 1; } 81%, 86% { opacity: .15; } }
+
+/* ---- lit parts: 3 glows like a die, 2 is softer, 1 stays dim; a die powers on once ---- */
+svg .l3 .body { fill: color-mix(in oklab, var(--neon) 16%, var(--paper)); filter: drop-shadow(0 0 7px color-mix(in oklab, var(--neon) 40%, transparent)); }
+svg .l3 .lt { fill: var(--hot); }
+svg .l2 .body { fill: color-mix(in oklab, var(--neon) 7%, var(--paper)); }
+svg .l1 .lt { fill: var(--ink-2); }
+svg .die { fill: color-mix(in oklab, var(--neon) 8%, var(--paper)); filter: drop-shadow(0 0 5px color-mix(in oklab, var(--neon) 18%, transparent));
+  animation: on 1.1s ease-out .9s both; }
+svg .mark text { animation: on 1.1s ease-out 1s both; }
+svg .mark .lt { fill: var(--hot); }
+@keyframes on { 0% { opacity: .15; } 40% { opacity: .9; } 50% { opacity: .4; } 100% { opacity: 1; } }
+/* always lit: the Overview's CPU, solid amber */
+svg .lit .body { fill: var(--ink); }
+svg .lit .lt, svg .lit .mk, svg .lit text.in, svg .lit .lab.in, svg .lit .ink.in { fill: var(--ground); }
+svg .lit .thin.in { stroke: var(--ground); }
+
+/* ---- probe-able parts: a probed part lifts with a glow and keeps its own colours ---- */
+svg .pr { cursor: pointer; outline: none; transition: filter .2s ease-out; }
+svg .pr.on { filter: var(--glow); }
+svg .pr:focus-visible { filter: var(--glow); }
+svg .pr:focus-visible .body, svg .pr:focus-visible .paper { stroke: var(--red); stroke-width: 2; }
+
+/* ---- nets: a lit net is the carrier, a deeper amber; its packets are the board's full amber and glow ---- */
+svg .net { fill: none; stroke: var(--ink-2); stroke-width: 1.4; stroke-linejoin: miter; }
+svg .net.over { stroke: none; }   /* a bus net drawn over copper: invisible until lit */
+svg .net.live { stroke: var(--carrier); stroke-width: 1.8; }
+svg .bits { fill: none; stroke: var(--neon); stroke-width: 3; stroke-linecap: butt; opacity: 0; pointer-events: none;
+  transition: opacity .2s var(--ease-out); }
+svg .bits.live { opacity: 1; animation: bits var(--bitdur, 5s) linear infinite;
+  filter: drop-shadow(0 0 1.5px var(--neon)) drop-shadow(0 0 5px color-mix(in oklab, var(--neon) 60%, transparent)); }
+svg .bits.lane.live { animation-direction: reverse; }   /* a bus transmits into the CPU */
+@keyframes bits { to { stroke-dashoffset: var(--bitlen, -216px); } }
+
+/* ---- copper: resting traces draw outward once; now and then a blip runs along one (scripts/blips.ts) ---- */
+svg .trace { fill: none; stroke: var(--ink-2); stroke-width: 1.2; stroke-dasharray: 3000; stroke-dashoffset: 3000;
+  animation: out 2.4s cubic-bezier(.4, 0, .2, 1) .3s forwards; }
+@keyframes out { to { stroke-dashoffset: 0; } }
+svg .blip { fill: none; stroke: var(--red); stroke-width: 2.2; stroke-linecap: round; opacity: 0; filter: drop-shadow(0 0 3px var(--neon)); }
+
+/* ---- the rest of the board, blurred behind; hidden on phones ---- */
+svg .brd { opacity: .38; filter: blur(2px); transition: opacity .25s ease-out, filter .25s ease-out; }
+svg .brd:hover, svg .brd:focus-visible { opacity: .9; filter: none; outline: none; }
+@media (max-width: 640px) { svg .brd { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  svg .pr, svg .brd, svg .bits { transition: none; }
+  svg .die, svg .mark text, svg .trace, svg .led.blink, svg .bits.live { animation: none; }
+  svg .trace { stroke-dashoffset: 0; }
+  svg .blip { display: none; }
+}

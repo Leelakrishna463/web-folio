@@ -1,0 +1,16 @@
+---
+// A net: the trace that lights when its part (or the CPU) is probed, plus the bits that run along it while lit.
+// keys: the probe keys that light it. lane: carry lane k of a bus's "LEE" pattern instead of the generic stream.
+import { d, chamfer, type Pt } from '../../lib/geom/path';
+import { laneBits } from '../../lib/geom/bus';
+
+interface Props { points: Pt[]; keys: string; r?: number; square?: boolean; lane?: number; class?: string }
+const { points, keys, r = 7, square = false, lane, class: cls = '' } = Astro.props;
+const path = d(square ? points : chamfer(points, r));
+// the generic stream: "LEE" in ASCII as pulse code, 1 = long dash, 0 = short dash, a wider gap between bytes (ds.js)
+const GENERIC = ['01001100', '01000101', '01000101'].flatMap((b) => b.split('').flatMap((c, i) => [c === '1' ? 7 : 2, i === 7 ? 14 : 4]));
+const bits = lane == null ? { dash: GENERIC, period: GENERIC.reduce((a, b) => a + b, 0) } : laneBits(lane);
+---
+<path d={path} class={`net ${cls}`.trim()} data-net={keys} />
+<path d={path} class={lane == null ? 'bits' : 'bits lane'} data-net={keys} stroke-dasharray={bits.dash.join(' ')}
+      style={`--bitlen: -${bits.period}px; --bitdur: ${(bits.period / 50).toFixed(2)}s`} />

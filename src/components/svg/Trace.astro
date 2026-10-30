@@ -1,0 +1,9 @@
+---
+// Resting copper. With blip, a dot of light now and then runs along it (timed by scripts/blips.ts)
+import { d, type Pt } from '../../lib/geom/path';
+interface Props { points: Pt[]; blip?: { seed: number; inward?: boolean } }
+const { points, blip } = Astro.props;
+const path = d(points);
+---
+<path d={path} class="trace" />
+{blip && <path d={path} class="blip" data-seed={blip.seed} data-inward={blip.inward ? '' : undefined} />}

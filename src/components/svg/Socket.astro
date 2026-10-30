@@ -1,0 +1,6 @@
+---
+// The board's socket or slot a card's edge connector sits in; drawn after the fingers so it covers their tips
+interface Props { x: number; y: number; w: number; h: number }
+const { x, y, w, h } = Astro.props;
+---
+<rect x={x} y={y} width={w} height={h} class="body socket" />

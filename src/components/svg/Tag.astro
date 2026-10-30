@@ -1,0 +1,6 @@
+---
+// A part's name beside it: the designator dim, the plain-English section bright
+interface Props { x: number; y: number; des: string; name: string; anchor?: 'start' | 'middle' | 'end'; size?: number }
+const { x, y, des, name, anchor = 'start', size = 16 } = Astro.props;
+---
+<text x={x} y={y} font-size={size} text-anchor={anchor} class="lt tag"><tspan class="des">{des} · </tspan><tspan>{name}</tspan></text>

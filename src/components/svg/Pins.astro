@@ -1,0 +1,12 @@
+---
+// A row of n pins along one edge, drawn as one path
+interface Props { side: 't' | 'b' | 'l' | 'r'; x: number; y: number; n: number; pitch: number; len: number; class?: string }
+const { side, x, y, n, pitch, len, class: cls = 'pin' } = Astro.props;
+let path = '';
+for (let i = 0; i < n; i++) {
+  const px = side === 't' || side === 'b' ? x + i * pitch : x, py = side === 'l' || side === 'r' ? y + i * pitch : y;
+  const ex = px + (side === 'l' ? -len : side === 'r' ? len : 0), ey = py + (side === 't' ? -len : side === 'b' ? len : 0);
+  path += `M${px} ${py} L${ex} ${ey} `;
+}
+---
+<path d={path.trim()} class={cls} />

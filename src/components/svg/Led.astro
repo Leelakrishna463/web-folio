@@ -1,0 +1,7 @@
+---
+// A small status LED: green for link/ok, amber for activity; blinking ones are staggered by delay (seconds)
+interface Props { x: number; y: number; w?: number; h?: number; ok?: boolean; blink?: boolean; delay?: number }
+const { x, y, w = 7, h = 5, ok = false, blink = false, delay = 0 } = Astro.props;
+---
+<rect x={x} y={y} width={w} height={h} class={['led', ok && 'ok', blink && 'blink'].filter(Boolean).join(' ')}
+      style={blink && delay ? `animation-delay: -${delay}s` : undefined} />

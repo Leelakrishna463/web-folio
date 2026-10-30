@@ -1,0 +1,11 @@
+---
+// A card's keyed edge connector (see lib/geom/edge.ts). Draw its Socket after it, so the socket covers the finger tips.
+import { d } from '../../lib/geom/path';
+import { fingers, type EdgeOptions } from '../../lib/geom/edge';
+type Props = EdgeOptions;
+const s = fingers(Astro.props);
+---
+<rect x={s.fill.x} y={s.fill.y} width={s.fill.w} height={s.fill.h} class="tabfill" />
+<path d={d(s.tab)} class="tab pcb" />
+{s.fingers.map((f) => <rect x={f.x} y={f.y} width={f.w} height={f.h} class="finger" />)}
+{s.keyslot && <path d={d(s.keyslot)} class="keyslot" />}

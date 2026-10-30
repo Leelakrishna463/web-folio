@@ -1,0 +1,47 @@
+---
+// The rest of the board, drawn blurred behind the focused part: a simplified outline of another section's part and a
+// link to it. Hidden on phones. Port of design/ds/live.js board().
+type Kind = 'cpu' | 'ram' | 'ssd' | 'gpu' | 'nic';
+interface Props { kind: Kind; x: number; y: number; w: number; h: number }
+const { kind, x, y, w, h } = Astro.props;
+const META: Record<Kind, [string, string, string]> = {
+  cpu: ['/about', 'About, drawn as the CPU', 'CPU · ABOUT'],
+  ram: ['/skills', 'Skills, drawn as RAM', 'RAM · SKILLS'],
+  ssd: ['/experience', 'Experience, drawn as an SSD', 'SSD · EXPERIENCE'],
+  gpu: ['/projects', 'Projects, drawn as a GPU', 'GPU · PROJECTS'],
+  nic: ['/contact', 'Contact, drawn as a network card', 'NIC · CONTACT'],
+};
+const [href, label, name] = META[kind];
+const fingers = Array.from({ length: Math.max(0, Math.floor((w - 10) / 8)) }, (_, i) => x + 6 + i * 8);
+---
+<a href={href} class="brd" aria-label={label}>
+  <rect x={x} y={y} width={w} height={h} class="body" />
+  {kind === 'cpu' && <>
+    <rect x={x + 34} y={y + 34} width={w - 68} height={h - 68} class="ln" />
+    <rect x={x + 80} y={y + h * 0.23} width={w * 0.54} height={h * 0.54} class="ln" />
+    <text x={x + 80 + w * 0.27} y={y + h / 2 + 24} font-size={h * 0.17} text-anchor="middle" class="lt">LEE</text>
+    <text x={x + 18} y={y + h / 2} font-size="11" text-anchor="middle" class="lab" transform={`rotate(-90 ${x + 18} ${y + h / 2})`}>{name}</text>
+  </>}
+  {kind === 'ram' && <>
+    {[0, 1, 2].map((i) => <rect x={x + 26 + (i * (w - 52)) / 3} y={y + 8} width={(w - 52) / 3 - 18} height={34} class="ln" />)}
+    <path d={fingers.map((fx) => `M${fx} ${y + h - 8}v6`).join(' ')} class="thin" />
+    <text x={x + w / 2} y={y + h - 11} font-size="11" text-anchor="middle" class="lab">{name}</text>
+  </>}
+  {kind === 'ssd' && <>
+    <path d={`M${x} ${y + 22}a9 9 0 0 1 0 18`} class="thin" />
+    <rect x={x + 50} y={y + 10} width={64} height={30} class="ln" />
+    <rect x={x + 130} y={y + 10} width={64} height={30} class="ln" />
+    <rect x={x + 210} y={y + 14} width={34} height={26} class="ln" />
+    <text x={x + w / 2} y={y + h - 8} font-size="11" text-anchor="middle" class="lab">{name}</text>
+  </>}
+  {kind === 'gpu' && <>
+    <rect x={x + w / 2 - 40} y={y + h / 2 - 50} width={80} height={80} class="ln" />
+    {[[22, 22], [w - 52, 22], [22, h - 70], [w - 52, h - 70]].map(([dx, dy]) => <rect x={x + dx} y={y + dy} width={30} height={30} class="ln" />)}
+    <text x={x + w / 2} y={y + h - 14} font-size="11" text-anchor="middle" class="lab">{name}</text>
+  </>}
+  {kind === 'nic' && <>
+    <rect x={x + 60} y={y + 22} width={48} height={48} class="ln" />
+    {[0, 1, 2, 3].map((i) => <rect x={x + w - 40} y={y + 8 + (i * (h - 16)) / 4} width={32} height={(h - 16) / 4 - 6} class="ln" />)}
+    <text x={x + w / 2 - 20} y={y + h - 12} font-size="11" text-anchor="middle" class="lab">{name}</text>
+  </>}
+</a>

@@ -1,0 +1,13 @@
+---
+// The drawing: a wide build for laptops and up, and an optional narrow build for phones. CSS shows one of them, so no
+// script has to measure or redraw anything.
+interface Props { label: string; wide: [number, number]; narrow?: [number, number] }
+const { label, wide, narrow } = Astro.props;
+---
+<figure class="fig" data-fig>
+  <div class="canvas">
+    <svg class="wide" viewBox={`0 0 ${wide[0]} ${wide[1]}`} role="group" aria-label={label} data-figure="wide"><slot name="wide" /></svg>
+    {narrow && <svg class="narrow" viewBox={`0 0 ${narrow[0]} ${narrow[1]}`} role="group" aria-label={label} data-figure="narrow"><slot name="narrow" /></svg>}
+  </div>
+  <slot />
+</figure>

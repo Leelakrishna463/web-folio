@@ -1,0 +1,39 @@
+---
+// An IC package: body, optional pin rows, pin-1 mark and lettering sized to fit. Given a probe, it becomes a part the
+// reader can hover, focus or tap. Extra lettering goes in the default slot.
+import Pins from './Pins.astro';
+
+interface Probe { key: string; label: string; href?: string }
+interface Props {
+  x: number; y: number; w: number; h: number;
+  /** which edges carry pins, e.g. 'tb' or 'tblr' */
+  pins?: string; pitch?: number; len?: number;
+  label?: string; labelMax?: number; labelY?: number; labelClass?: string;
+  /** how brightly it is lit: 3 glows like a die, 1 stays dim */
+  lit?: 1 | 2 | 3;
+  mark?: boolean; paper?: boolean; probe?: Probe; class?: string;
+}
+const { x, y, w, h, pins = '', pitch = 8, len = 4, label, labelMax = 14, labelY, labelClass = 'lt', lit, mark = true,
+  paper = false, probe, class: cls = '' } = Astro.props;
+const PAD = 12;
+// lettering fits the box: Archivo's condensed caps run about 0.64em per character
+// (rounded down, so the written size can never overflow the box)
+const size = label ? Math.floor(Math.min(labelMax, (w - PAD) / (label.length * 0.64)) * 100) / 100 : 0;
+type Side = 't' | 'b' | 'l' | 'r';
+const rows = (pins.split('') as Side[]).map((s) => {
+  const horiz = s === 't' || s === 'b', span = horiz ? w : h, n = Math.max(2, Math.floor((span - 10) / pitch));
+  const start = (span - (n - 1) * pitch) / 2;
+  return horiz
+    ? { side: s, x: x + start, y: s === 't' ? y : y + h, n }
+    : { side: s, x: s === 'l' ? x : x + w, y: y + start, n };
+});
+const classes = [probe ? 'pr' : '', lit ? `l${lit}` : '', cls].filter(Boolean).join(' ') || undefined;
+---
+<g class={classes} data-key={probe?.key} data-href={probe?.href} tabindex={probe ? 0 : undefined}
+   role={probe ? (probe.href ? 'link' : 'button') : undefined} aria-label={probe?.label}>
+  {rows.map((r) => <Pins side={r.side} x={r.x} y={r.y} n={r.n} pitch={pitch} len={len} />)}
+  <rect x={x} y={y} width={w} height={h} class={paper ? 'paper' : 'body'} />
+  {mark && <circle cx={x + 7} cy={y + 7} r="2.2" class="ink in" />}
+  {label && <text x={x + w / 2} y={labelY ?? y + h / 2} font-size={size} text-anchor="middle" dominant-baseline="central" class={labelClass}>{label}</text>}
+  <slot />
+</g>
